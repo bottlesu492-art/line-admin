@@ -12,6 +12,7 @@
 
   <script>
     const LIFF_ID = "2009831016-9xQbInBY";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxjWbzpbtHvQKZZgbciBL9UF-8gO2wv330kcLP_sIN8ZXBrCxsPWBm1REzEhlwRK8fx/exec";
 
     async function main() {
       try {
@@ -31,39 +32,38 @@
 
         document.getElementById("status").textContent = "4. 已登入，讀取個人資料...";
 
-        let profile;
-        try {
-          profile = await liff.getProfile();
-        } catch (err) {
-          document.getElementById("title").textContent = "Profile 錯誤";
-          document.getElementById("status").textContent =
-            "❌ getProfile 失敗：" + (err && err.message ? err.message : JSON.stringify(err));
-          return;
-        }
-
+        const profile = await liff.getProfile();
         const userId = profile.userId;
 
         document.getElementById("status").textContent =
           "5. 取得 userId 成功：" + userId;
 
-        fetch("https://script.google.com/macros/s/AKfycbxjWbzpbtHvQKZZgbciBL9UF-8gO2wv330kcLP_sIN8ZXBrCxsPWBm1REzEhlwRK8fx/exec?action=checkAdmin&userId=" + encodeURIComponent(userId))
-          .then(res => res.json())
-          .then(data => {
-            if (data.ok && data.isAdmin) {
-              document.getElementById("title").textContent = "管理後台";
-              document.getElementById("status").textContent =
-                "✅ 歡迎進入管理後台：" + profile.displayName;
-            } else {
-              document.getElementById("title").textContent = "無權限";
-              document.getElementById("status").textContent =
-                "❌ 你不在管理員名單內 / " + userId;
-            }
-          })
-          .catch(err => {
-            document.getElementById("title").textContent = "GAS 錯誤";
+        //(備註功能) JSONP callback
+        window.handleAdminCheck = function(data) {
+          if (data.ok && data.isAdmin) {
+            document.getElementById("title").textContent = "管理後台";
             document.getElementById("status").textContent =
-              "❌ fetch GAS 失敗：" + (err && err.message ? err.message : err);
-          });
+              "✅ 歡迎進入管理後台：" + profile.displayName;
+          } else {
+            document.getElementById("title").textContent = "無權限";
+            document.getElementById("status").textContent =
+              "❌ 你不在管理員名單內 / " + userId;
+          }
+        };
+
+        const script = document.createElement("script");
+        script.src = GAS_URL
+          + "?action=checkAdmin"
+          + "&userId=" + encodeURIComponent(userId)
+          + "&callback=handleAdminCheck";
+
+        script.onerror = function() {
+          document.getElementById("title").textContent = "GAS 錯誤";
+          document.getElementById("status").textContent =
+            "❌ GAS 連線失敗（JSONP 載入失敗）";
+        };
+
+        document.body.appendChild(script);
 
       } catch (err) {
         document.getElementById("title").textContent = "初始化錯誤";
