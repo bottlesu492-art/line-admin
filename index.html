@@ -11,60 +11,68 @@
   <p id="status">初始化中...</p>
 
   <script>
-  const LIFF_ID = "2009831016-9xQbInBY"; //(備註功能) 你的 LIFF ID
+    const LIFF_ID = "2009831016-9xQbInBY";
 
-  async function main() {
-    try {
-      document.getElementById("status").textContent = "1. 開始初始化 LIFF...";
+    async function main() {
+      try {
+        document.getElementById("status").textContent = "1. 開始初始化 LIFF...";
+        await liff.init({
+          liffId: LIFF_ID,
+          withLoginOnExternalBrowser: true
+        });
 
-      await liff.init({
-        liffId: LIFF_ID,
-        withLoginOnExternalBrowser: true
-      });
+        document.getElementById("status").textContent = "2. LIFF 初始化成功";
 
-      document.getElementById("status").textContent = "2. LIFF 初始化成功";
+        if (!liff.isLoggedIn()) {
+          document.getElementById("status").textContent = "3. 尚未登入，準備登入...";
+          liff.login();
+          return;
+        }
 
-      // (備註功能) 外部瀏覽器若尚未登入，主動登入
-      if (!liff.isLoggedIn()) {
-        document.getElementById("status").textContent = "3. 尚未登入，跳轉 LINE Login...";
-        liff.login();
-        return;
-      }
+        document.getElementById("status").textContent = "4. 已登入，讀取個人資料...";
 
-      document.getElementById("status").textContent = "4. 已登入，讀取個人資料...";
-      const profile = await liff.getProfile();
-      const userId = profile.userId;
-
-      document.getElementById("status").textContent =
-        "5. 取得 userId：" + userId;
-
-      google.script.run
-        .withSuccessHandler(function(isAdmin) {
-          if (isAdmin) {
-            document.getElementById("title").textContent = "管理後台";
-            document.getElementById("status").textContent =
-              "✅ 歡迎進入管理後台：" + profile.displayName;
-          } else {
-            document.getElementById("title").textContent = "無權限";
-            document.getElementById("status").textContent =
-              "❌ 你不在管理員名單內\nuserId：" + userId;
-          }
-        })
-        .withFailureHandler(function(err) {
-          document.getElementById("title").textContent = "系統錯誤";
+        let profile;
+        try {
+          profile = await liff.getProfile();
+        } catch (err) {
+          document.getElementById("title").textContent = "Profile 錯誤";
           document.getElementById("status").textContent =
-            "❌ checkLiffAdmin 失敗：" + (err && err.message ? err.message : JSON.stringify(err));
-        })
-        .checkLiffAdmin(userId);
+            "❌ getProfile 失敗：" + (err && err.message ? err.message : JSON.stringify(err));
+          return;
+        }
 
-    } catch (err) {
-      document.getElementById("title").textContent = "初始化錯誤";
-      document.getElementById("status").textContent =
-        "❌ LIFF 初始化失敗：" + (err && err.message ? err.message : JSON.stringify(err));
+        const userId = profile.userId;
+
+        document.getElementById("status").textContent =
+          "5. 取得 userId 成功：" + userId;
+
+        fetch("https://script.google.com/macros/s/AKfycbxjWbzpbtHvQKZZgbciBL9UF-8gO2wv330kcLP_sIN8ZXBrCxsPWBm1REzEhlwRK8fx/exec?action=checkAdmin&userId=" + encodeURIComponent(userId))
+          .then(res => res.json())
+          .then(data => {
+            if (data.ok && data.isAdmin) {
+              document.getElementById("title").textContent = "管理後台";
+              document.getElementById("status").textContent =
+                "✅ 歡迎進入管理後台：" + profile.displayName;
+            } else {
+              document.getElementById("title").textContent = "無權限";
+              document.getElementById("status").textContent =
+                "❌ 你不在管理員名單內 / " + userId;
+            }
+          })
+          .catch(err => {
+            document.getElementById("title").textContent = "GAS 錯誤";
+            document.getElementById("status").textContent =
+              "❌ fetch GAS 失敗：" + (err && err.message ? err.message : err);
+          });
+
+      } catch (err) {
+        document.getElementById("title").textContent = "初始化錯誤";
+        document.getElementById("status").textContent =
+          "❌ LIFF 初始化失敗：" + (err && err.message ? err.message : JSON.stringify(err));
+      }
     }
-  }
 
-  main();
-</script>
+    main();
+  </script>
 </body>
 </html>
