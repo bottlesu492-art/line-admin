@@ -176,23 +176,29 @@
     }
 
     function showSummaryPage() {
-      window.handleSummary = function(data) {
-        const html =
-          '<div class="item">管理員薪資總額：' + data.managerSalary + '</div>' +
-          '<div class="item">員工薪資總額：' + data.employeeSalary + '</div>' +
-          '<div class="item">本月代墊總額：' + data.expenseTotal + '</div>' +
-          '<div class="item"><b>本月總支出：' + data.grandTotal + '</b></div>';
+  window.handleSummary = function(data) {
+    const html =
+      '<div class="item">📅 月份：' + data.monthText + '</div>' +
+      '<div class="item">👷 管理員薪資總額：' + data.managerSalary + '</div>' +
+      '<div class="item">👷‍♂️ 員工薪資總額：' + data.employeeSalary + '</div>' +
+      '<div class="item">💰 本月代墊總額：' + data.expenseTotal + '</div>' +
+      '<br>' +
+      '<div class="item">🍱 餐飲：' + data.foodTotal + '</div>' +
+      '<div class="item">🧰 工具：' + data.toolTotal + '</div>' +
+      '<div class="item">📦 其他：' + data.otherTotal + '</div>' +
+      '<br>' +
+      '<div class="item"><b>🔥 本月總支出：' + data.grandTotal + '</b></div>';
 
-        showContent("人事總額", html);
-      };
+    showContent("人事總額", html);
+  };
 
-      const script = document.createElement("script");
-      script.src = GAS_URL + "?action=getSummary&callback=handleSummary";
-      script.onerror = function() {
-        showContent("人事總額", "❌ 讀取失敗");
-      };
-      document.body.appendChild(script);
-    }
+  const script = document.createElement("script");
+  script.src = GAS_URL + "?action=getSummary&callback=handleSummary";
+  script.onerror = function() {
+    showContent("人事總額", "❌ 讀取失敗");
+  };
+  document.body.appendChild(script);
+}
 
     main();
   </script>
