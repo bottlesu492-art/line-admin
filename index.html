@@ -5,14 +5,93 @@
   <title>管理後台</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    body {
+      font-family: Arial, "Noto Sans TC", sans-serif;
+      margin: 0;
+      padding: 16px;
+      background: #f5f7fa;
+      color: #2E3A45;
+    }
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 2px 10px rgba(0,0,0,.08);
+      margin-bottom: 16px;
+    }
+    .title {
+      font-size: 22px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+    .sub {
+      color: #666;
+      margin-bottom: 12px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    button {
+      border: none;
+      border-radius: 14px;
+      padding: 16px;
+      font-size: 16px;
+      font-weight: bold;
+      background: #586D80;
+      color: #fff;
+      cursor: pointer;
+    }
+    .back {
+      background: #CCC5BC;
+      color: #2E3A45;
+      margin-bottom: 12px;
+    }
+    .hidden {
+      display: none;
+    }
+    .item {
+      padding: 10px 0;
+      border-bottom: 1px solid #eee;
+    }
+  </style>
 </head>
 <body>
-  <h1 id="title">管理後台</h1>
-  <p id="status">初始化中...</p>
+  <div id="loginPage" class="card">
+    <div class="title">管理後台</div>
+    <div id="status" class="sub">初始化中...</div>
+  </div>
+
+  <div id="homePage" class="hidden">
+    <div class="card">
+      <div class="title">管理後台</div>
+      <div id="welcomeText" class="sub"></div>
+      <div class="grid">
+        <button onclick="showTodayPage()">今日管理</button>
+        <button onclick="showLeavePage()">排休管理</button>
+        <button onclick="showPatchPage()">補打卡管理</button>
+        <button onclick="showEmployeePage()">員工薪資</button>
+        <button onclick="showSummaryPage()">人事總額</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="contentPage" class="hidden">
+    <button class="back" onclick="goHome()">← 返回首頁</button>
+    <div class="card">
+      <div id="contentTitle" class="title"></div>
+      <div id="contentBody"></div>
+    </div>
+  </div>
 
   <script>
     const LIFF_ID = "2009831016-9xQbInBY";
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbzPOpbhtiLEKyomI4vbt65Qih-DzPSUR1v_sZcVwM4QpFGIvqz7UxA-l-03XZAdv_2y/exec";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxjWbzpbtHvQKZZgbciBL9UF-8gO2wv330kcLP_sIN8ZXBrCxsPWBm1REzEhlwRK8fx/exec";
+
+    let currentProfile = null;
+    let currentUserId = "";
 
     async function main() {
       try {
@@ -31,45 +110,88 @@
         }
 
         document.getElementById("status").textContent = "4. 已登入，讀取個人資料...";
-
-        const profile = await liff.getProfile();
-        const userId = profile.userId;
+        currentProfile = await liff.getProfile();
+        currentUserId = currentProfile.userId;
 
         document.getElementById("status").textContent =
-          "5. 取得 userId 成功：" + userId;
+          "5. 驗證管理員中...";
 
-        //(備註功能) JSONP callback
         window.handleAdminCheck = function(data) {
           if (data.ok && data.isAdmin) {
-            document.getElementById("title").textContent = "管理後台";
-            document.getElementById("status").textContent =
-              "✅ 歡迎進入管理後台：" + profile.displayName;
+            document.getElementById("loginPage").classList.add("hidden");
+            document.getElementById("homePage").classList.remove("hidden");
+            document.getElementById("welcomeText").textContent =
+              "歡迎，" + currentProfile.displayName;
           } else {
-            document.getElementById("title").textContent = "無權限";
             document.getElementById("status").textContent =
-              "❌ 你不在管理員名單內 / " + userId;
+              "❌ 你不在管理員名單內";
           }
         };
 
         const script = document.createElement("script");
         script.src = GAS_URL
           + "?action=checkAdmin"
-          + "&userId=" + encodeURIComponent(userId)
+          + "&userId=" + encodeURIComponent(currentUserId)
           + "&callback=handleAdminCheck";
 
         script.onerror = function() {
-          document.getElementById("title").textContent = "GAS 錯誤";
           document.getElementById("status").textContent =
-            "❌ GAS 連線失敗（JSONP 載入失敗）";
+            "❌ 管理員驗證失敗";
         };
 
         document.body.appendChild(script);
 
       } catch (err) {
-        document.getElementById("title").textContent = "初始化錯誤";
         document.getElementById("status").textContent =
-          "❌ LIFF 初始化失敗：" + (err && err.message ? err.message : JSON.stringify(err));
+          "❌ 初始化錯誤：" + (err && err.message ? err.message : JSON.stringify(err));
       }
+    }
+
+    function goHome() {
+      document.getElementById("contentPage").classList.add("hidden");
+      document.getElementById("homePage").classList.remove("hidden");
+    }
+
+    function showContent(title, html) {
+      document.getElementById("homePage").classList.add("hidden");
+      document.getElementById("contentPage").classList.remove("hidden");
+      document.getElementById("contentTitle").textContent = title;
+      document.getElementById("contentBody").innerHTML = html;
+    }
+
+    function showTodayPage() {
+      showContent("今日管理", "之後接今日記錄 / 今日異常");
+    }
+
+    function showLeavePage() {
+      showContent("排休管理", "之後接排休月曆或試算表連結");
+    }
+
+    function showPatchPage() {
+      showContent("補打卡管理", "之後接待審核補打卡列表");
+    }
+
+    function showEmployeePage() {
+      showContent("員工薪資", "之後接員工清單與個人薪資資料");
+    }
+
+    function showSummaryPage() {
+      window.handleSummary = function(data) {
+        const html =
+          '<div class="item">管理員薪資總額：' + data.managerSalary + '</div>' +
+          '<div class="item">員工薪資總額：' + data.employeeSalary + '</div>' +
+          '<div class="item">本月代墊總額：' + data.expenseTotal + '</div>' +
+          '<div class="item"><b>本月總支出：' + data.grandTotal + '</b></div>';
+
+        showContent("人事總額", html);
+      };
+
+      const script = document.createElement("script");
+      script.src = GAS_URL + "?action=getSummary&callback=handleSummary";
+      script.onerror = function() {
+        showContent("人事總額", "❌ 讀取失敗");
+      };
+      document.body.appendChild(script);
     }
 
     main();
