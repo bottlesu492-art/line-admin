@@ -170,6 +170,7 @@
             document.getElementById("homePage").classList.remove("hidden");
             document.getElementById("welcomeText").textContent =
               "歡迎，" + currentProfile.displayName;
+            loadUI();
           } else {
             document.getElementById("status").textContent =
               "❌ 你不在管理員名單內";
