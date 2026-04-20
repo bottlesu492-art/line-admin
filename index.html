@@ -360,6 +360,66 @@ function renderPatchPendingPage(data) {
 
   showContent("補打卡管理", html);
 }
+ function refreshPatchPage() {
+  window.handlePatchPendingRefresh = function(data) {
+    renderPatchPendingPage(data);
+  };
+
+  const script = document.createElement("script");
+  script.src = GAS_URL
+    + "?action=getPatchPendingList"
+    + "&callback=handlePatchPendingRefresh"
+    + "&_t=" + Date.now();
+  document.body.appendChild(script);
+}
+
+function approvePatchCard(row) {
+  window.handleApprovePatch = function(data) {
+    if (data.ok) {
+      refreshPatchPage();
+    } else {
+      alert("❌ " + (data.message || "核准失敗"));
+    }
+  };
+
+  const script = document.createElement("script");
+  script.src = GAS_URL
+    + "?action=approvePatchWeb"
+    + "&row=" + encodeURIComponent(row)
+    + "&userId=" + encodeURIComponent(currentUserId)
+    + "&callback=handleApprovePatch"
+    + "&_t=" + Date.now();
+  document.body.appendChild(script);
+}
+
+function rejectPatchCard(row) {
+  const reason = prompt("請輸入駁回原因");
+  if (reason === null) return;
+
+  const finalReason = reason.trim();
+  if (!finalReason) {
+    alert("請輸入駁回原因");
+    return;
+  }
+
+  window.handleRejectPatch = function(data) {
+    if (data.ok) {
+      refreshPatchPage();
+    } else {
+      alert("❌ " + (data.message || "駁回失敗"));
+    }
+  };
+
+  const script = document.createElement("script");
+  script.src = GAS_URL
+    + "?action=rejectPatchWeb"
+    + "&row=" + encodeURIComponent(row)
+    + "&userId=" + encodeURIComponent(currentUserId)
+    + "&reason=" + encodeURIComponent(finalReason)
+    + "&callback=handleRejectPatch"
+    + "&_t=" + Date.now();
+  document.body.appendChild(script);
+}   
 function approvePatchCard(row) {
   window.handleApprovePatch = function(data) {
     if (data.ok) {
