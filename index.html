@@ -583,6 +583,30 @@ function toggleExpenseDetail(id) {
   el.style.display = (el.style.display === "none" || el.style.display === "")
     ? "block"
     : "none";
+} 
+function deleteLeave() {
+  const date = prompt("請輸入日期（格式：2026-04-23）");
+  if (!date) return;
+
+  const name = prompt("請輸入姓名");
+  if (!name) return;
+
+  window.handleDeleteLeave = function(res) {
+    if (res.ok) {
+      alert("刪除成功");
+    } else {
+      alert("❌ " + res.message);
+    }
+  };
+
+  const script = document.createElement("script");
+  script.src = GAS_URL
+    + "?action=deleteLeave"
+    + "&name=" + encodeURIComponent(name)
+    + "&date=" + encodeURIComponent(date)
+    + "&callback=handleDeleteLeave";
+
+  document.body.appendChild(script);
 }    
     main();
   </script>
