@@ -393,40 +393,55 @@ function deleteLeave() {
   const date = prompt("請輸入日期（格式：2026-04-23）");
   if (!date) return;
 
-  const name = prompt("請輸入姓名");
-  if (!name) return;
-
-  window.handleDeleteLeave = function(res) {
-    if (res.ok) {
-      alert("刪除成功");
-      showLeavePage();
-    } else {
-      alert("❌ " + res.message);
+  window.handleLeaveNamesByDate = function(res) {
+    if (!res.ok) {
+      alert("❌ 讀取失敗");
+      return;
     }
+
+    if (!res.names || res.names.length === 0) {
+      alert("這一天沒有排休資料");
+      return;
+    }
+
+    let message = "請輸入要刪除的姓名：\n\n";
+    message += res.names.map((name, i) => `${i + 1}. ${name}`).join("\n");
+
+    const picked = prompt(message);
+    if (!picked) return;
+
+    let finalName = picked.trim();
+    const idx = Number(finalName);
+
+    if (!isNaN(idx) && idx >= 1 && idx <= res.names.length) {
+      finalName = res.names[idx - 1];
+    }
+
+    window.handleDeleteLeave = function(delRes) {
+      if (delRes.ok) {
+        alert("刪除成功");
+        showLeavePage();
+      } else {
+        alert("❌ " + delRes.message);
+      }
+    };
+
+    const script2 = document.createElement("script");
+    script2.src = GAS_URL
+      + "?action=deleteLeave"
+      + "&name=" + encodeURIComponent(finalName)
+      + "&date=" + encodeURIComponent(date)
+      + "&callback=handleDeleteLeave"
+      + "&_t=" + Date.now();
+    document.body.appendChild(script2);
   };
 
   const script = document.createElement("script");
   script.src = GAS_URL
-    + "?action=deleteLeave"
-    + "&name=" + encodeURIComponent(name)
+    + "?action=getLeaveNamesByDate"
     + "&date=" + encodeURIComponent(date)
-    + "&callback=handleDeleteLeave"
+    + "&callback=handleLeaveNamesByDate"
     + "&_t=" + Date.now();
-
-  document.body.appendChild(script);
-}  
-  function showPatchPage() {
-  window.handlePatchPending = function(data) {
-    renderPatchPendingPage(data);
-  };
-
-  const script = document.createElement("script");
-  script.src = GAS_URL
-    + "?action=getPatchPendingList"
-    + "&callback=handlePatchPending";
-  script.onerror = function() {
-    showContent("補打卡管理", "❌ 讀取失敗");
-  };
   document.body.appendChild(script);
 }
 
