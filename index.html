@@ -289,23 +289,47 @@ function showSummaryPage() {
   };
   document.body.appendChild(script);
 }
-    function showExpensePage() {
+function showExpensePage() {
   window.handleExpense = function(data) {
     let html = "";
 
-    // 👉 依人名排序（固定順序）
     const names = Object.keys(data).sort();
 
-    names.forEach(name => {
-      html += `<div class="card">`;
-      html += `<div class="title">👤 ${name}</div>`;
+    names.forEach((name, index) => {
+      const list = [...data[name]].reverse();
+      const total = list.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+      const detailId = "expense-detail-" + index;
 
-      // 👉 最新在上
-      const list = data[name].reverse();
+      html += `
+        <div class="card">
+          <div
+            onclick="toggleExpenseDetail('${detailId}')"
+            style="
+              display:flex;
+              justify-content:space-between;
+              align-items:center;
+              cursor:pointer;
+              gap:12px;
+            "
+          >
+            <div>
+              <div class="title" style="margin-bottom:4px;">👤 ${name}</div>
+              <div class="sub" style="margin-bottom:0;">共 ${list.length} 筆</div>
+            </div>
+
+            <div style="text-align:right;">
+              <div class="sub" style="margin-bottom:4px;">支出小計</div>
+              <div style="font-size:22px;font-weight:bold;color:var(--text-main);">
+                $${total}
+              </div>
+              <div style="font-size:12px;color:var(--text-sub);">點擊展開 / 收合</div>
+            </div>
+          </div>
+
+          <div id="${detailId}" style="display:none; margin-top:14px;">
+      `;
 
       list.forEach(item => {
-
-        // 🎨 分類顏色
         let typeColor = "#666";
         let typeIcon = "📦";
 
@@ -323,11 +347,11 @@ function showSummaryPage() {
         html += `
           <div class="item">
             <div style="color:${typeColor};font-weight:bold;">
-              ${typeIcon} ${item.type}
+              ${typeIcon} ${item.type || "未分類"}
             </div>
 
             <div style="font-size:13px;color:#999;">
-              ${item.time}
+              ${item.time || ""}
             </div>
 
             <div>
@@ -335,14 +359,21 @@ function showSummaryPage() {
             </div>
 
             <div style="font-weight:bold;margin-top:4px;">
-              $${item.amount}
+              $${item.amount || 0}
             </div>
           </div>
         `;
       });
 
-      html += `</div>`;
+      html += `
+          </div>
+        </div>
+      `;
     });
+
+    if (!html) {
+      html = "目前沒有支出明細";
+    }
 
     showContent("支出明細", html);
   };
@@ -354,6 +385,14 @@ function showSummaryPage() {
   };
   document.body.appendChild(script);
 }
+function toggleExpenseDetail(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  el.style.display = (el.style.display === "none" || el.style.display === "")
+    ? "block"
+    : "none";
+}    
     main();
   </script>
 </body>
