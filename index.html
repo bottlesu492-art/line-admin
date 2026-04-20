@@ -380,11 +380,12 @@ function renderLeaveCalendar(monthData) {
   weekdays.forEach(d => {
     html += `
       <div style="
-        min-height:42px;
+        min-height:34px;
         display:flex;
         align-items:center;
         justify-content:center;
         font-weight:bold;
+        font-size:14px;
         color:var(--text-main);
         background:var(--accent);
         border-right:1px solid #d9d9d9;
@@ -394,21 +395,24 @@ function renderLeaveCalendar(monthData) {
     `;
   });
 
-  // 前面空白
-  for (let i = 0; i < startWeekday; i++) {
-    html += `
-      <div style="
-        min-height:96px;
-        border-right:1px solid #d9d9d9;
-        border-bottom:1px solid #d9d9d9;
-        background:#fafafa;
-        box-sizing:border-box;
-      "></div>
-    `;
-  }
+  // 固定 6 週 = 42 格
+  for (let cell = 0; cell < 42; cell++) {
+    const day = cell - startWeekday + 1;
 
-  // 日期格
-  for (let day = 1; day <= lastDate; day++) {
+    // 空白格
+    if (day < 1 || day > lastDate) {
+      html += `
+        <div style="
+          min-height:78px;
+          border-right:1px solid #d9d9d9;
+          border-bottom:1px solid #d9d9d9;
+          background:#fff;
+          box-sizing:border-box;
+        "></div>
+      `;
+      continue;
+    }
+
     const mm = String(month).padStart(2, "0");
     const dd = String(day).padStart(2, "0");
     const key = `${year}-${mm}-${dd}`;
@@ -416,8 +420,8 @@ function renderLeaveCalendar(monthData) {
 
     html += `
       <div style="
-        min-height:96px;
-        padding:8px;
+        min-height:78px;
+        padding:6px;
         border-right:1px solid #d9d9d9;
         border-bottom:1px solid #d9d9d9;
         box-sizing:border-box;
@@ -428,15 +432,15 @@ function renderLeaveCalendar(monthData) {
       ">
         <div style="
           font-weight:bold;
-          font-size:16px;
+          font-size:12px;
           line-height:1;
-          margin-bottom:8px;
+          margin-bottom:6px;
           color:var(--text-main);
         ">${day}</div>
 
         <div style="
-          font-size:13px;
-          line-height:1.5;
+          font-size:11px;
+          line-height:1.35;
           color:var(--text-main);
           white-space:normal;
           word-break:keep-all;
