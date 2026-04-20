@@ -270,43 +270,9 @@
       showContent("排休管理", "之後接排休月曆或試算表連結");
     }
 
-    function showPatchPage() {
+  function showPatchPage() {
   window.handlePatchPending = function(data) {
-    if (!data.ok) {
-      showContent("補打卡管理", "❌ 讀取失敗");
-      return;
-    }
-
-    let html = `<div class="sub">待審核補打卡：${data.count} 筆</div>`;
-
-    if (!data.items || data.items.length === 0) {
-      html += `<div class="card">目前沒有待審核補打卡</div>`;
-      showContent("補打卡管理", html);
-      return;
-    }
-
-    html += `<div class="patch-scroll">`;
-
-    data.items.forEach(item => {
-      html += `
-        <div class="card patch-card" id="patch-card-${item.row}">
-          <div class="title">👤 ${item.name}</div>
-          <div class="item">📂 ${item.type}</div>
-          <div class="item">📅 ${item.dateText}</div>
-          <div class="item">📍 ${item.location || "未填"}</div>
-          <div class="item">📝 ${item.reason || "未填"}</div>
-
-          <div class="patch-actions">
-            <button class="patch-btn approve" onclick="approvePatchCard(${item.row})">核准</button>
-            <button class="patch-btn reject" onclick="rejectPatchCard(${item.row})">駁回</button>
-          </div>
-        </div>
-      `;
-    });
-
-    html += `</div>`;
-
-    showContent("補打卡管理", html);
+    renderPatchPendingPage(data);
   };
 
   const script = document.createElement("script");
@@ -317,6 +283,55 @@
     showContent("補打卡管理", "❌ 讀取失敗");
   };
   document.body.appendChild(script);
+}
+
+function renderPatchPendingPage(data) {
+  if (!data || !data.ok) {
+    showContent("補打卡管理", "❌ 讀取失敗");
+    return;
+  }
+
+  let html = `
+    <div class="patch-header">
+      <div class="sub">待審核補打卡</div>
+      <div class="patch-count">共 ${data.count || 0} 筆</div>
+    </div>
+  `;
+
+  if (!data.items || data.items.length === 0) {
+    html += `
+      <div class="card empty-card">
+        <div class="empty-icon">✅</div>
+        <div class="title" style="font-size:20px;">目前沒有待審核補打卡</div>
+        <div class="sub" style="margin-bottom:0;">上個月與本月的待審核資料都已處理完成</div>
+      </div>
+    `;
+    showContent("補打卡管理", html);
+    return;
+  }
+
+  html += `<div class="patch-scroll">`;
+
+  data.items.forEach(item => {
+    html += `
+      <div class="card patch-card" id="patch-card-${item.row}">
+        <div class="title">👤 ${item.name}</div>
+        <div class="item">📂 ${item.type}</div>
+        <div class="item">📅 ${item.dateText}</div>
+        <div class="item">📍 ${item.location || "未填"}</div>
+        <div class="item">📝 ${item.reason || "未填"}</div>
+
+        <div class="patch-actions">
+          <button class="patch-btn approve" onclick="approvePatchCard(${item.row})">核准</button>
+          <button class="patch-btn reject" onclick="rejectPatchCard(${item.row})">駁回</button>
+        </div>
+      </div>
+    `;
+  });
+
+  html += `</div>`;
+
+  showContent("補打卡管理", html);
 }
 function approvePatchCard(row) {
   window.handleApprovePatch = function(data) {
