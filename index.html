@@ -320,25 +320,25 @@
     }
 
     const html = `
+      <!-- 上方工具卡 -->
       <div class="card" style="margin-bottom:12px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
           <div class="sub" style="margin-bottom:0;">本月與次月排休</div>
           <button onclick="openLeaveDeleteUI()">刪除排休</button>
         </div>
-
-        <div style="
-  font-size:12px;
-  color:#999;
-  margin-top:8px;
-">
-  拖曳｜縮放查看
-</div>
-
-      <div class="calendar-viewport">
-        <div id="leaveCalendarStage" class="calendar-stage" style="transform:scale(${leaveCalendarScale});">
-          ${renderLeaveCalendar(data.thisMonth)}
-          ${renderLeaveCalendar(data.nextMonth)}
+        <div style="font-size:12px;color:#999;margin-top:8px;">
+          可拖曳移動，並使用雙指縮放查看
         </div>
+      </div>
+
+      <!-- 本月 -->
+      <div class="card" style="margin-bottom:16px;">
+        ${renderLeaveCalendar(data.thisMonth)}
+      </div>
+
+      <!-- 次月 -->
+      <div class="card" style="margin-bottom:16px;">
+        ${renderLeaveCalendar(data.nextMonth)}
       </div>
     `;
 
@@ -363,13 +363,12 @@ function renderLeaveCalendar(monthData) {
   const weekdays = ["日", "一", "二", "三", "四", "五", "六"];
 
   let html = `
-    <div style="margin-bottom:16px;">
+    <div>
       <div class="title" style="font-size:20px;">${month}月</div>
-      <div style="overflow:hidden;">
-        <div style="transform:scale(${leaveCalendarScale}); transform-origin:top left;">
-          <div style="display:grid;grid-template-columns:repeat(7,96px);gap:6px;margin-top:12px;">
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:12px;">
   `;
 
+  // 星期列
   weekdays.forEach(d => {
     html += `
       <div style="
@@ -382,10 +381,12 @@ function renderLeaveCalendar(monthData) {
     `;
   });
 
+  // 空格補齊
   for (let i = 0; i < startWeekday; i++) {
     html += `<div></div>`;
   }
 
+  // 日期
   for (let day = 1; day <= lastDate; day++) {
     const mm = String(month).padStart(2, "0");
     const dd = String(day).padStart(2, "0");
@@ -394,7 +395,7 @@ function renderLeaveCalendar(monthData) {
 
     html += `
       <div style="
-        min-height:118px;
+        min-height:110px;
         background:var(--card);
         border:1px solid #e8e8e8;
         border-radius:12px;
@@ -405,6 +406,7 @@ function renderLeaveCalendar(monthData) {
         align-items:flex-start;
       ">
         <div style="font-weight:bold;margin-bottom:6px;">${day}</div>
+
         <div style="
           font-size:13px;
           line-height:1.5;
@@ -419,8 +421,6 @@ function renderLeaveCalendar(monthData) {
   }
 
   html += `
-          </div>
-        </div>
       </div>
     </div>
   `;
