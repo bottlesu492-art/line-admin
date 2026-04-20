@@ -807,9 +807,210 @@ function rejectPatchCard(row) {
     + "&_t=" + Date.now();
   document.body.appendChild(script);
 }   
-    function showEmployeePage() {
-      showContent("員工薪資", "之後接員工清單與個人薪資資料");
-    }
+function showEmployeePage() {
+  showContent("員工薪資", `
+    <div class="card empty-card">
+      <div class="title" style="font-size:20px;">讀取員工名單中...</div>
+      <div class="sub" style="margin-bottom:0;">請稍候</div>
+    </div>
+  `);
+
+  window.handleEmployeeSalaryList = function(data) {
+    renderEmployeeSalaryListPage(data);
+  };
+
+  const script = document.createElement("script");
+  script.src = GAS_URL
+    + "?action=getEmployeeSalaryList"
+    + "&callback=handleEmployeeSalaryList"
+    + "&_t=" + Date.now();
+
+  script.onerror = function() {
+    showContent("員工薪資", "❌ 讀取失敗");
+  };
+
+  document.body.appendChild(script);
+}
+
+function renderEmployeeSalaryListPage(data) {
+  if (!data || !data.ok) {
+    showContent("員工薪資", "❌ 讀取失敗");
+    return;
+  }
+
+  if (!data.items || data.items.length === 0) {
+    showContent("員工薪資", `
+      <div class="card empty-card">
+        <div class="title" style="font-size:20px;">目前沒有員工薪資名單</div>
+        <div class="sub" style="margin-bottom:0;">請確認「員工名單」B欄是否有姓名</div>
+      </div>
+    `);
+    return;
+  }
+
+  let html = `<div class="grid">`;
+
+  data.items.forEach(item => {
+    const subText = item.dailyPay ? `日薪 ${escapeHtml(item.dailyPay)}` : "查看薪資";
+    html += `
+      <button onclick="openEmployeeSalaryDetail('${escapeJs(item.name)}')">
+        ${escapeHtml(item.name)}<br>
+        <span style="font-size:12px;font-weight:normal;">${subText}</span>
+      </button>
+    `;
+  });
+
+  html += `</div>`;
+
+  showContent("員工薪資", html);
+}
+
+function openEmployeeSalaryDetail(name) {
+  showContent("員工薪資", `
+    <div class="card empty-card">
+      <div class="title" style="font-size:20px;">讀取薪資資料中...</div>
+      <div class="sub" style="margin-bottom:0;">${escapeHtml(name)}</div>
+    </div>
+  `);
+
+  window.handleEmployeeSalaryDetail = function(data) {
+    renderEmployeeSalaryDetailPage(data);
+  };
+
+  const script = document.createElement("script");
+  script.src = GAS_URL
+    + "?action=getEmployeeSalaryDetail"
+    + "&name=" + encodeURIComponent(name)
+    + "&callback=handleEmployeeSalaryDetail"
+    + "&_t=" + Date.now();
+
+  script.onerror = function() {
+    showContent("員工薪資", "❌ 讀取失敗");
+  };
+
+  document.body.appendChild(script);
+}
+
+function renderEmployeeSalaryDetailPage(data) {
+  if (!data || !data.ok) {
+    showContent("員工薪資", `
+      <div class="card">
+        <div class="title">讀取失敗</div>
+        <div class="sub" style="margin-bottom:0;">${escapeHtml(data && data.message ? data.message : "請稍後再試")}</div>
+      </div>
+    `);
+    return;
+  }
+
+  let summaryHtml = `<div class="grid">`;
+
+  (data.summary || []).forEach(item => {
+    summaryHtml += `
+      <div class="card center" style="margin-bottom:0;">
+        <div class="sub" style="margin-bottom:4px;">${escapeHtml(item.label)}</div>
+        <div class="title" style="font-size:20px;margin-bottom:0;">${escapeHtml(item.value || "0")}</div>
+      </div>
+    `;
+  });
+
+  summaryHtml += `</div>`;
+
+  let extraHtml = "";
+
+  if (data.extra && data.extra.length > 0) {
+    extraHtml += `
+      <div class="card">
+        <div class="title">保費與統計</div>
+    `;
+
+    data.extra.forEach(item => {
+      extraHtml += `
+        <div class="item" style="display:flex;justify-content:space-between;gap:12px;">
+          <span>${escapeHtml(item.label)}</span>
+          <strong>${escapeHtml(item.value || "0")}</strong>
+        </div>
+      `;
+    });
+
+    extraHtml += `</div>`;
+  }
+
+  const detailHtml = renderEmployeeSalaryDetailTable(data.detailRows || []);
+
+  const html = `
+    <button class="back" onclick="showEmployeePage()">返回員工薪資</button>
+
+    <div class="card">
+      <div class="title">${escapeHtml(data.name)}</div>
+      <div class="sub" style="margin-bottom:0;">月份：${escapeHtml(data.monthText || "")}</div>
+    </div>
+
+    ${summaryHtml}
+    ${extraHtml}
+
+    <div class="card">
+      <div class="title">每日明細</div>
+      ${detailHtml}
+    </div>
+  `;
+
+  showContent("員工薪資", html);
+}
+
+function renderEmployeeSalaryDetailTable(rows) {
+  if (!rows || rows.length === 0) {
+    return `
+      <div class="highlight" style="margin-top:0;">
+        目前沒有明細資料
+      </div>
+    `;
+  }
+
+  let html = `
+    <div style="overflow:auto;border-radius:12px;background:#fff;">
+      <table style="border-collapse:collapse;width:max-content;min-width:100%;font-size:13px;">
+  `;
+
+  rows.forEach((row, rowIndex) => {
+    html += `<tr>`;
+
+    row.forEach(cell => {
+      const tag = rowIndex === 0 ? "th" : "td";
+      const bg = rowIndex === 0 ? "var(--accent)" : "#fff";
+      const weight = rowIndex === 0 ? "bold" : "normal";
+
+      html += `
+        <${tag} style="
+          border:1px solid #e5e5e5;
+          padding:8px 10px;
+          white-space:nowrap;
+          color:var(--text-main);
+          background:${bg};
+          font-weight:${weight};
+          text-align:left;
+        ">
+          ${escapeHtml(cell)}
+        </${tag}>
+      `;
+    });
+
+    html += `</tr>`;
+  });
+
+  html += `
+      </table>
+    </div>
+  `;
+
+  return html;
+}
+
+function escapeJs(value) {
+  return String(value || "")
+    .replace(/\\/g, "\\\\")
+    .replace(/'/g, "\\'");
+}
+
 
 function showSummaryPage() {
   window.handleSummary = function(data) {
