@@ -91,8 +91,7 @@
 }
 
 .icon {
-  width: 48px;
-  height: 48px;
+  font-size: 40px;
   margin-bottom: 8px;
 }
 </style>
@@ -231,85 +230,60 @@
       showContent("員工薪資", "之後接員工清單與個人薪資資料");
     }
 
-    function showSummaryPage() {
+function showSummaryPage() {
   window.handleSummary = function(data) {
-    const html =
-  `<div class="grid">
+    const html = `
+      <div class="grid">
 
-    <div class="card center">
-      <img src="${UI_IMAGE.salary || '💰'}" class="icon">
-      <div class="sub">管理員薪資</div>
-      <div class="title">${data.managerSalary}</div>
-    </div>
+        <div class="card center">
+          <div class="icon">💰</div>
+          <div class="sub">管理員薪資</div>
+          <div class="title">${data.managerSalary}</div>
+        </div>
 
-    <div class="card center">
-      <img src="${UI_IMAGE.worker || '👷'}" class="icon">
-      <div class="sub">員工薪資</div>
-      <div class="title">${data.employeeSalary}</div>
-    </div>
+        <div class="card center">
+          <div class="icon">👷</div>
+          <div class="sub">員工薪資</div>
+          <div class="title">${data.employeeSalary}</div>
+        </div>
 
-    <div class="card center">
-      <img src="${UI_IMAGE.expense || '💳'}" class="icon">
-      <div class="sub">代墊</div>
-      <div class="title">${data.expenseTotal}</div>
-    </div>
+        <div class="card center">
+          <div class="icon">💳</div>
+          <div class="sub">代墊</div>
+          <div class="title">${data.expenseTotal}</div>
+        </div>
 
-    <div class="card center">
-      <img src="${UI_IMAGE.food || '🍱'}" class="icon">
-      <div class="sub">餐飲</div>
-      <div class="title">${data.foodTotal}</div>
-    </div>
+        <div class="card center">
+          <div class="icon">🍱</div>
+          <div class="sub">餐飲</div>
+          <div class="title">${data.foodTotal}</div>
+        </div>
 
-    <div class="card center">
-      <img src="${UI_IMAGE.tool || '🧰'}" class="icon">
-      <div class="sub">工具</div>
-      <div class="title">${data.toolTotal}</div>
-    </div>
+        <div class="card center">
+          <div class="icon">🧰</div>
+          <div class="sub">工具</div>
+          <div class="title">${data.toolTotal}</div>
+        </div>
 
-    <div class="card center">
-      <img src="${UI_IMAGE.other || '📦'}" class="icon">
-      <div class="sub">其他</div>
-      <div class="title">${data.otherTotal}</div>
-    </div>
+        <div class="card center">
+          <div class="icon">📦</div>
+          <div class="sub">其他</div>
+          <div class="title">${data.otherTotal}</div>
+        </div>
 
-  </div>
+      </div>
 
-  <div class="highlight">🔥 總支出：${data.grandTotal}</div>
-`;
+      <div class="highlight">🔥 總支出：${data.grandTotal}</div>
+    `;
+
+    showContent("人事總額", html);
+  };
 
   const script = document.createElement("script");
   script.src = GAS_URL + "?action=getSummary&callback=handleSummary";
   script.onerror = function() {
     showContent("人事總額", "❌ 讀取失敗");
   };
-  document.body.appendChild(script);
-}
-function showExpensePage() {
-  window.handleExpense = function(data) {
-    let html = "";
-
-    for (let name in data) {
-      html += `<div class="card">`;
-      html += `<div class="title">${name}</div>`;
-
-      data[name].forEach(item => {
-        html += `
-          <div class="item">
-            <div>${item.time}｜${item.type}</div>
-            <div>${item.note || ""}</div>
-            <div><b>$${item.amount}</b></div>
-          </div>
-        `;
-      });
-
-      html += `</div>`;
-    }
-
-    showContent("支出明細", html);
-  };
-
-  const script = document.createElement("script");
-  script.src = GAS_URL + "?action=getExpenseList&callback=handleExpense";
   document.body.appendChild(script);
 }
     main();
