@@ -342,8 +342,9 @@ function renderDashboardPage(data) {
   let html = "";
 
   html += renderTodayAbnormalCard(data.abnormal);
-  html += renderPatchDashboardCard(data.patchPending);
-  html += renderTodayLeaveRequestCard(data.todayLeaveRequests);
+html += renderTodayClockUsersCard(data.todayClockUsers);
+html += renderPatchDashboardCard(data.patchPending);
+html += renderTodayLeaveRequestCard(data.todayLeaveRequests);
 
   showContent("今日管理", html);
 }
@@ -377,6 +378,41 @@ function renderTodayAbnormalCard(abnormal) {
     <div class="card">
       <div class="title">今日異常</div>
       <div class="sub">只判斷今天已有打卡紀錄的人</div>
+      ${body}
+    </div>
+  `;
+}
+function renderTodayClockUsersCard(clockUsers) {
+  clockUsers = clockUsers || {
+    count: 0,
+    names: []
+  };
+
+  let body = "";
+
+  if (clockUsers.names && clockUsers.names.length > 0) {
+    clockUsers.names.forEach(name => {
+      body += `
+        <div class="item">
+          ${escapeHtml(name)}
+        </div>
+      `;
+    });
+  } else {
+    body = `
+      <div class="highlight" style="margin-top:0;">
+        今日尚無打卡紀錄
+      </div>
+    `;
+  }
+
+  return `
+    <div class="card">
+      <div class="title">今日打卡人員</div>
+      <div class="sub">上班或下班任一紀錄都會列入，同一人只顯示一次</div>
+      <div class="highlight" style="margin-top:0;margin-bottom:10px;">
+        今日打卡人員：${clockUsers.count || 0} 人
+      </div>
       ${body}
     </div>
   `;
