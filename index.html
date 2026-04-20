@@ -286,6 +286,71 @@ function showSummaryPage() {
   };
   document.body.appendChild(script);
 }
+    function showExpensePage() {
+  window.handleExpense = function(data) {
+    let html = "";
+
+    // 👉 依人名排序（固定順序）
+    const names = Object.keys(data).sort();
+
+    names.forEach(name => {
+      html += `<div class="card">`;
+      html += `<div class="title">👤 ${name}</div>`;
+
+      // 👉 最新在上
+      const list = data[name].reverse();
+
+      list.forEach(item => {
+
+        // 🎨 分類顏色
+        let typeColor = "#666";
+        let typeIcon = "📦";
+
+        if (item.type === "餐飲") {
+          typeColor = "#4CAF50";
+          typeIcon = "🍱";
+        } else if (item.type === "工具") {
+          typeColor = "#2196F3";
+          typeIcon = "🧰";
+        } else if (item.type === "其他") {
+          typeColor = "#9E9E9E";
+          typeIcon = "📦";
+        }
+
+        html += `
+          <div class="item">
+            <div style="color:${typeColor};font-weight:bold;">
+              ${typeIcon} ${item.type}
+            </div>
+
+            <div style="font-size:13px;color:#999;">
+              ${item.time}
+            </div>
+
+            <div>
+              ${item.note || ""}
+            </div>
+
+            <div style="font-weight:bold;margin-top:4px;">
+              $${item.amount}
+            </div>
+          </div>
+        `;
+      });
+
+      html += `</div>`;
+    });
+
+    showContent("支出明細", html);
+  };
+
+  const script = document.createElement("script");
+  script.src = GAS_URL + "?action=getExpenseList&callback=handleExpense";
+  script.onerror = function() {
+    showContent("支出明細", "❌ 讀取失敗");
+  };
+  document.body.appendChild(script);
+}
     main();
   </script>
 </body>
