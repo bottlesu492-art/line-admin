@@ -122,7 +122,7 @@
 
     function loadUI() {
       window.handleUI = function(data) {
-        document.documentElement.style.setProperty('--primary', data.primary || '#586D80');
+        document.documentElement.style.setProperty('--primary', data.button || data.primary || '#586D80');
         document.documentElement.style.setProperty('--accent', data.accent || '#CCC5BC');
         document.documentElement.style.setProperty('--text-main', data.title || '#2E3A45');
         document.documentElement.style.setProperty('--text-sub', data.subText || '#666666');
