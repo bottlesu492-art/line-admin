@@ -238,7 +238,7 @@
   document.body.appendChild(script);
 }
     
-    let leaveCalendarScale = 0.7;
+    let leaveCalendarScale = 0.5;
     let currentUserId = "";
 
     async function main() {
@@ -326,12 +326,9 @@
           <button onclick="openLeaveDeleteUI()">刪除排休</button>
         </div>
 
-        <div class="calendar-toolbar" style="margin-top:12px;">
-          <button onclick="zoomLeaveCalendar(0.1)">放大</button>
-          <button onclick="zoomLeaveCalendar(-0.1)">縮小</button>
-          <button onclick="resetLeaveCalendarZoom()">重設</button>
-        </div>
-      </div>
+        <div class="sub" style="margin-top:12px;margin-bottom:0;">
+  可拖曳放大
+</div>
 
       <div class="calendar-viewport">
         <div id="leaveCalendarStage" class="calendar-stage" style="transform:scale(${leaveCalendarScale});">
@@ -840,25 +837,6 @@ function toggleExpenseDetail(id) {
     + "&_t=" + Date.now();
 
   document.body.appendChild(script);
-}
-    function applyLeaveCalendarZoom() {
-  const el = document.getElementById("leaveCalendarStage");
-  if (!el) return;
-  el.style.transform = `scale(${leaveCalendarScale})`;
-}
-
-function zoomLeaveCalendar(step) {
-  leaveCalendarScale += step;
-
-  if (leaveCalendarScale < 0.45) leaveCalendarScale = 0.45;
-  if (leaveCalendarScale > 1.2) leaveCalendarScale = 1.2;
-
-  applyLeaveCalendarZoom();
-}
-
-function resetLeaveCalendarZoom() {
-  leaveCalendarScale = 0.7;
-  applyLeaveCalendarZoom();
 }
     main();
   </script>
