@@ -331,9 +331,10 @@ function renderLeaveCalendar(monthData) {
   const weekdays = ["日", "一", "二", "三", "四", "五", "六"];
 
   let html = `
-    <div class="card" style="margin-bottom:16px;">
+    <div style="margin-bottom:16px;">
       <div class="title" style="font-size:20px;">${month}月</div>
-      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:12px;">
+      <div style="overflow-x:auto; padding-bottom:6px;">
+        <div style="display:grid;grid-template-columns:repeat(7,96px);gap:6px;margin-top:12px;min-width:max-content;">
   `;
 
   weekdays.forEach(d => {
@@ -360,7 +361,7 @@ function renderLeaveCalendar(monthData) {
 
     html += `
       <div style="
-        min-height:110px;
+        min-height:118px;
         background:var(--card);
         border:1px solid #e8e8e8;
         border-radius:12px;
@@ -375,7 +376,6 @@ function renderLeaveCalendar(monthData) {
           font-size:13px;
           line-height:1.5;
           color:var(--text-main);
-          width:3.2em;
           white-space:normal;
           word-break:keep-all;
         ">
@@ -385,7 +385,12 @@ function renderLeaveCalendar(monthData) {
     `;
   }
 
-  html += `</div></div>`;
+  html += `
+        </div>
+      </div>
+    </div>
+  `;
+
   return html;
 }
 
@@ -444,7 +449,6 @@ function deleteLeave() {
     + "&_t=" + Date.now();
   document.body.appendChild(script);
 }
-
 function renderPatchPendingPage(data) {
   if (!data || !data.ok) {
     showContent("補打卡管理", "❌ 讀取失敗");
@@ -717,30 +721,6 @@ function toggleExpenseDetail(id) {
     ? "block"
     : "none";
 } 
-function deleteLeave() {
-  const date = prompt("請輸入日期（格式：2026-04-23）");
-  if (!date) return;
-
-  const name = prompt("請輸入姓名");
-  if (!name) return;
-
-  window.handleDeleteLeave = function(res) {
-    if (res.ok) {
-      alert("刪除成功");
-    } else {
-      alert("❌ " + res.message);
-    }
-  };
-
-  const script = document.createElement("script");
-  script.src = GAS_URL
-    + "?action=deleteLeave"
-    + "&name=" + encodeURIComponent(name)
-    + "&date=" + encodeURIComponent(date)
-    + "&callback=handleDeleteLeave";
-
-  document.body.appendChild(script);
-}    
     main();
   </script>
 </body>
