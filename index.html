@@ -721,6 +721,95 @@ function toggleExpenseDetail(id) {
     ? "block"
     : "none";
 } 
+    function openLeaveDeleteUI() {
+  let html = `
+    <div class="card">
+      <div class="title">🗑️ 刪除排休</div>
+      <div class="sub">請選擇日期</div>
+      <input type="date" id="leaveDate" style="padding:10px;font-size:16px;width:100%;margin-top:10px;">
+      <button style="margin-top:12px;" onclick="loadLeaveNames()">查詢人員</button>
+      <div id="leaveNamesArea" style="margin-top:16px;"></div>
+    </div>
+  `;
+
+  showContent("刪除排休", html);
+}
+    function loadLeaveNames() {
+  const date = document.getElementById("leaveDate").value;
+  if (!date) {
+    alert("請先選日期");
+    return;
+  }
+
+  window.handleLeaveNamesByDate = function(res) {
+    if (!res.ok) {
+      alert("讀取失敗");
+      return;
+    }
+
+    let html = "";
+
+    if (!res.names || res.names.length === 0) {
+      html = "<div class='sub'>這天沒人排休</div>";
+    } else {
+      res.names.forEach(name => {
+        html += `
+          <button style="margin:4px;" onclick="deleteLeaveDirect('${name}', '${date}')">
+            ${name}
+          </button>
+        `;
+      });
+    }
+
+    document.getElementById("leaveNamesArea").innerHTML = html;
+  };
+
+  const script = document.createElement("script");
+  script.src = GAS_URL
+    + "?action=getLeaveNamesByDate"
+    + "&date=" + date
+    + "&callback=handleLeaveNamesByDate"
+    + "&_t=" + Date.now();
+
+  document.body.appendChild(script);
+}
+    function deleteLeaveDirect(name, date) {
+  const html = `
+    <div class="card" style="text-align:center;">
+      <div class="title">⚠️ 確認刪除</div>
+      <div class="sub" style="margin-top:10px;">
+        確定刪除「${name}」的排休？
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:20px;">
+        <button style="flex:1;background:#ccc;color:#333;" onclick="loadLeaveNames()">取消</button>
+        <button style="flex:1;background:#D9534F;" onclick="confirmDeleteLeave('${name}', '${date}')">確定</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById("leaveNamesArea").innerHTML = html;
+}
+    function confirmDeleteLeave(name, date) {
+  window.handleDeleteLeave = function(res) {
+    if (res.ok) {
+      alert("刪除成功");
+      loadLeaveNames(); // 回列表
+    } else {
+      alert("❌ 刪除失敗");
+    }
+  };
+
+  const script = document.createElement("script");
+  script.src = GAS_URL
+    + "?action=deleteLeave"
+    + "&name=" + encodeURIComponent(name)
+    + "&date=" + encodeURIComponent(date)
+    + "&callback=handleDeleteLeave"
+    + "&_t=" + Date.now();
+
+  document.body.appendChild(script);
+}
     main();
   </script>
 </body>
