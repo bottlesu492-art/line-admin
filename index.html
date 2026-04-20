@@ -367,7 +367,7 @@ function renderLeaveCalendar(monthData) {
       <div class="title" style="font-size:20px; margin-bottom:10px;">${month}月</div>
 
       <!-- 整體縮小 -->
-      <div style="font-size:8px; overflow-x:auto; -webkit-overflow-scrolling:touch;">
+      <div style="font-size:10px; overflow:hidden;">
         <div style="
           display:grid;
           grid-template-columns:repeat(7, 4.2em);
@@ -502,6 +502,23 @@ function deleteLeave() {
     + "&date=" + encodeURIComponent(date)
     + "&callback=handleLeaveNamesByDate"
     + "&_t=" + Date.now();
+  document.body.appendChild(script);
+}
+    function showPatchPage() {
+  window.handlePatchPending = function(data) {
+    renderPatchPendingPage(data);
+  };
+
+  const script = document.createElement("script");
+  script.src = GAS_URL
+    + "?action=getPatchPendingList"
+    + "&callback=handlePatchPending"
+    + "&_t=" + Date.now();
+
+  script.onerror = function() {
+    showContent("補打卡管理", "❌ 讀取失敗");
+  };
+
   document.body.appendChild(script);
 }
 function renderPatchPendingPage(data) {
