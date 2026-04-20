@@ -208,16 +208,17 @@
     function showSummaryPage() {
   window.handleSummary = function(data) {
     const html =
-      '<div class="item">📅 月份：' + data.monthText + '</div>' +
-      '<div class="item">👷 管理員薪資總額：' + data.managerSalary + '</div>' +
-      '<div class="item">👷‍♂️ 員工薪資總額：' + data.employeeSalary + '</div>' +
-      '<div class="item">💰 本月代墊總額：' + data.expenseTotal + '</div>' +
-      '<br>' +
-      '<div class="item">🍱 餐飲：' + data.foodTotal + '</div>' +
-      '<div class="item">🧰 工具：' + data.toolTotal + '</div>' +
-      '<div class="item">📦 其他：' + data.otherTotal + '</div>' +
-      '<br>' +
-      '<div class="item"><b>🔥 本月總支出：' + data.grandTotal + '</b></div>';
+  '<div class="item">📅 ' + data.monthText + '</div>' +
+
+  '<div class="item">👷 管理員薪資：' + data.managerSalary + '</div>' +
+  '<div class="item">👷‍♂️ 員工薪資：' + data.employeeSalary + '</div>' +
+  '<div class="item">💰 代墊：' + data.expenseTotal + '</div>' +
+
+  '<div class="item">🍱 餐飲：' + data.foodTotal + '</div>' +
+  '<div class="item">🧰 工具：' + data.toolTotal + '</div>' +
+  '<div class="item">📦 其他：' + data.otherTotal + '</div>' +
+
+  '<div class="highlight">🔥 總支出：' + data.grandTotal + '</div>';
 
     showContent("人事總額", html);
   };
