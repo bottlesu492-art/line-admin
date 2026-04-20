@@ -86,6 +86,15 @@
     font-weight: bold;
     margin-top: 10px;
   }
+    .center {
+  text-align: center;
+}
+
+.icon {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 8px;
+}
 </style>
 </head>
 <body>
@@ -225,20 +234,48 @@
     function showSummaryPage() {
   window.handleSummary = function(data) {
     const html =
-  '<div class="item">📅 ' + data.monthText + '</div>' +
+  `<div class="grid">
 
-  '<div class="item">👷 管理員薪資：' + data.managerSalary + '</div>' +
-  '<div class="item">👷‍♂️ 員工薪資：' + data.employeeSalary + '</div>' +
-  '<div class="item">💰 代墊：' + data.expenseTotal + '</div>' +
+    <div class="card center">
+      <img src="${UI_IMAGE.salary || '💰'}" class="icon">
+      <div class="sub">管理員薪資</div>
+      <div class="title">${data.managerSalary}</div>
+    </div>
 
-  '<div class="item">🍱 餐飲：' + data.foodTotal + '</div>' +
-  '<div class="item">🧰 工具：' + data.toolTotal + '</div>' +
-  '<div class="item">📦 其他：' + data.otherTotal + '</div>' +
+    <div class="card center">
+      <img src="${UI_IMAGE.worker || '👷'}" class="icon">
+      <div class="sub">員工薪資</div>
+      <div class="title">${data.employeeSalary}</div>
+    </div>
 
-  '<div class="highlight">🔥 總支出：' + data.grandTotal + '</div>';
+    <div class="card center">
+      <img src="${UI_IMAGE.expense || '💳'}" class="icon">
+      <div class="sub">代墊</div>
+      <div class="title">${data.expenseTotal}</div>
+    </div>
 
-    showContent("人事總額", html);
-  };
+    <div class="card center">
+      <img src="${UI_IMAGE.food || '🍱'}" class="icon">
+      <div class="sub">餐飲</div>
+      <div class="title">${data.foodTotal}</div>
+    </div>
+
+    <div class="card center">
+      <img src="${UI_IMAGE.tool || '🧰'}" class="icon">
+      <div class="sub">工具</div>
+      <div class="title">${data.toolTotal}</div>
+    </div>
+
+    <div class="card center">
+      <img src="${UI_IMAGE.other || '📦'}" class="icon">
+      <div class="sub">其他</div>
+      <div class="title">${data.otherTotal}</div>
+    </div>
+
+  </div>
+
+  <div class="highlight">🔥 總支出：${data.grandTotal}</div>
+`;
 
   const script = document.createElement("script");
   script.src = GAS_URL + "?action=getSummary&callback=handleSummary";
