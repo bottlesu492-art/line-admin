@@ -294,9 +294,120 @@
     }
 
     function showLeavePage() {
-      showContent("排休管理", "之後接排休月曆或試算表連結");
+  window.handleLeaveCalendar = function(data) {
+    if (!data || !data.ok) {
+      showContent("排休管理", "❌ 讀取失敗");
+      return;
     }
 
+    const html = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:12px;">
+        <div class="sub" style="margin-bottom:0;">本月與次月排休日曆</div>
+        <button onclick="deleteLeave()" style="padding:10px 14px;font-size:14px;">刪除排休</button>
+      </div>
+
+      ${renderLeaveCalendar(data.thisMonth)}
+      ${renderLeaveCalendar(data.nextMonth)}
+    `;
+
+    showContent("排休管理", html);
+  };
+
+  const script = document.createElement("script");
+  script.src = GAS_URL + "?action=getLeaveCalendar&callback=handleLeaveCalendar&_t=" + Date.now();
+  script.onerror = function() {
+    showContent("排休管理", "❌ 讀取失敗");
+  };
+  document.body.appendChild(script);
+}
+ function renderLeaveCalendar(monthData) {
+  const year = monthData.year;
+  const month = monthData.month;
+  const leaves = monthData.leaves || {};
+
+  const firstDay = new Date(year, month - 1, 1);
+  const lastDate = new Date(year, month, 0).getDate();
+  const startWeekday = firstDay.getDay(); // 0=日
+
+  const weekdays = ["日", "一", "二", "三", "四", "五", "六"];
+
+  let html = `
+    <div class="card" style="margin-bottom:16px;">
+      <div class="title" style="font-size:20px;">${month}月</div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:12px;">
+  `;
+
+  weekdays.forEach(d => {
+    html += `
+      <div style="
+        text-align:center;
+        font-weight:bold;
+        padding:8px 4px;
+        background:var(--accent);
+        border-radius:10px;
+      ">${d}</div>
+    `;
+  });
+
+  for (let i = 0; i < startWeekday; i++) {
+    html += `<div></div>`;
+  }
+
+  for (let day = 1; day <= lastDate; day++) {
+    const mm = String(month).padStart(2, "0");
+    const dd = String(day).padStart(2, "0");
+    const key = `${year}-${mm}-${dd}`;
+    const names = leaves[key] || [];
+
+    html += `
+      <div style="
+        min-height:88px;
+        background:var(--card);
+        border:1px solid #e8e8e8;
+        border-radius:12px;
+        padding:8px;
+        box-sizing:border-box;
+      ">
+        <div style="font-weight:bold;margin-bottom:6px;">${day}</div>
+        <div style="font-size:13px;line-height:1.4;color:var(--text-main);white-space:pre-line;">${names.join("\n")}</div>
+      </div>
+    `;
+  }
+
+  html += `
+      </div>
+    </div>
+  `;
+
+  return html;
+}
+
+function deleteLeave() {
+  const date = prompt("請輸入日期（格式：2026-04-23）");
+  if (!date) return;
+
+  const name = prompt("請輸入姓名");
+  if (!name) return;
+
+  window.handleDeleteLeave = function(res) {
+    if (res.ok) {
+      alert("刪除成功");
+      showLeavePage();
+    } else {
+      alert("❌ " + res.message);
+    }
+  };
+
+  const script = document.createElement("script");
+  script.src = GAS_URL
+    + "?action=deleteLeave"
+    + "&name=" + encodeURIComponent(name)
+    + "&date=" + encodeURIComponent(date)
+    + "&callback=handleDeleteLeave"
+    + "&_t=" + Date.now();
+
+  document.body.appendChild(script);
+}  
   function showPatchPage() {
   window.handlePatchPending = function(data) {
     renderPatchPendingPage(data);
