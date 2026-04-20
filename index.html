@@ -309,8 +309,140 @@
     }
 
     function showTodayPage() {
-      showContent("今日管理", "之後接今日記錄 / 今日異常");
-    }
+  showContent("今日管理", `
+    <div class="card empty-card">
+      <div class="title" style="font-size:20px;">讀取今日資料中...</div>
+      <div class="sub" style="margin-bottom:0;">請稍候</div>
+    </div>
+  `);
+
+  window.handleDashboardData = function(data) {
+    renderDashboardPage(data);
+  };
+
+  const script = document.createElement("script");
+  script.src = GAS_URL
+    + "?action=getDashboardData"
+    + "&callback=handleDashboardData"
+    + "&_t=" + Date.now();
+
+  script.onerror = function() {
+    showContent("今日管理", "❌ 讀取失敗");
+  };
+
+  document.body.appendChild(script);
+}
+
+function renderDashboardPage(data) {
+  if (!data || !data.ok) {
+    showContent("今日管理", "❌ 讀取失敗");
+    return;
+  }
+
+  let html = "";
+
+  html += renderTodayAbnormalCard(data.abnormal);
+  html += renderPatchDashboardCard(data.patchPending);
+  html += renderTodayLeaveRequestCard(data.todayLeaveRequests);
+
+  showContent("今日管理", html);
+}
+
+function renderTodayAbnormalCard(abnormal) {
+  abnormal = abnormal || {
+    status: "normal",
+    message: "今日目前無打卡異常",
+    items: []
+  };
+
+  let body = "";
+
+  if (abnormal.status === "abnormal" && abnormal.items && abnormal.items.length > 0) {
+    abnormal.items.forEach(item => {
+      body += `
+        <div class="item">
+          ${escapeHtml(item.name)}：${escapeHtml(item.problem)}
+        </div>
+      `;
+    });
+  } else {
+    body = `
+      <div class="highlight" style="margin-top:0;">
+        ${escapeHtml(abnormal.message || "今日目前無打卡異常")}
+      </div>
+    `;
+  }
+
+  return `
+    <div class="card">
+      <div class="title">今日異常</div>
+      <div class="sub">只判斷今天已有打卡紀錄的人</div>
+      ${body}
+    </div>
+  `;
+}
+
+function renderPatchDashboardCard(patchPending) {
+  const count = patchPending && patchPending.count ? patchPending.count : 0;
+
+  return `
+    <div class="card" onclick="showPatchPage()" style="cursor:pointer;">
+      <div class="title">補打卡待審核</div>
+      <div class="highlight" style="margin-top:0;">
+        補打卡待審核：${count} 筆
+      </div>
+      <button style="margin-top:12px;width:100%;" onclick="event.stopPropagation(); showPatchPage();">
+        前往補打卡管理
+      </button>
+    </div>
+  `;
+}
+
+function renderTodayLeaveRequestCard(leaveRequests) {
+  leaveRequests = leaveRequests || {
+    count: 0,
+    items: []
+  };
+
+  let body = "";
+
+  if (leaveRequests.items && leaveRequests.items.length > 0) {
+    leaveRequests.items.forEach(item => {
+      body += `
+        <div class="item">
+          ${escapeHtml(item.name)}：申請 ${escapeHtml(item.leaveDateText)}
+        </div>
+      `;
+    });
+  } else {
+    body = `
+      <div class="highlight" style="margin-top:0;">
+        今日尚無排休申請
+      </div>
+    `;
+  }
+
+  return `
+    <div class="card" onclick="showLeavePage()" style="cursor:pointer;">
+      <div class="title">今日排休申請</div>
+      <div class="sub">只顯示今天提出的排休申請</div>
+      ${body}
+      <button style="margin-top:12px;width:100%;" onclick="event.stopPropagation(); showLeavePage();">
+        前往排休管理
+      </button>
+    </div>
+  `;
+}
+
+function escapeHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 
     function showLeavePage() {
   window.handleLeaveCalendar = function(data) {
