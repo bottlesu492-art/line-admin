@@ -168,6 +168,27 @@
 .empty-icon {
   font-size: 40px;
   margin-bottom: 10px;
+}   
+.calendar-toolbar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.calendar-toolbar button {
+  padding: 10px 14px;
+  font-size: 14px;
+}
+
+.calendar-viewport {
+  overflow: auto;
+  border-radius: 16px;
+}
+
+.calendar-stage {
+  transform-origin: top left;
+  width: max-content;
 }    
 </style>
 </head>
@@ -217,7 +238,7 @@
   document.body.appendChild(script);
 }
     
-    let currentProfile = null;
+    let leaveCalendarScale = 0.7;
     let currentUserId = "";
 
     async function main() {
@@ -299,16 +320,26 @@
     }
 
     const html = `
-  <div class="card" style="margin-bottom:12px;">
-    <div style="display:flex;justify-content:space-between;align-items:center;">
-      <div class="sub" style="margin-bottom:0;">本月與次月排休</div>
-      <button onclick="openLeaveDeleteUI()">刪除排休</button>
-    </div>
-  </div>
+      <div class="card" style="margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+          <div class="sub" style="margin-bottom:0;">本月與次月排休</div>
+          <button onclick="openLeaveDeleteUI()">刪除排休</button>
+        </div>
 
-  ${renderLeaveCalendar(data.thisMonth)}
-  ${renderLeaveCalendar(data.nextMonth)}
-`;
+        <div class="calendar-toolbar" style="margin-top:12px;">
+          <button onclick="zoomLeaveCalendar(0.1)">放大</button>
+          <button onclick="zoomLeaveCalendar(-0.1)">縮小</button>
+          <button onclick="resetLeaveCalendarZoom()">重設</button>
+        </div>
+      </div>
+
+      <div class="calendar-viewport">
+        <div id="leaveCalendarStage" class="calendar-stage" style="transform:scale(${leaveCalendarScale});">
+          ${renderLeaveCalendar(data.thisMonth)}
+          ${renderLeaveCalendar(data.nextMonth)}
+        </div>
+      </div>
+    `;
 
     showContent("排休管理", html);
   };
@@ -809,6 +840,25 @@ function toggleExpenseDetail(id) {
     + "&_t=" + Date.now();
 
   document.body.appendChild(script);
+}
+    function applyLeaveCalendarZoom() {
+  const el = document.getElementById("leaveCalendarStage");
+  if (!el) return;
+  el.style.transform = `scale(${leaveCalendarScale})`;
+}
+
+function zoomLeaveCalendar(step) {
+  leaveCalendarScale += step;
+
+  if (leaveCalendarScale < 0.45) leaveCalendarScale = 0.45;
+  if (leaveCalendarScale > 1.2) leaveCalendarScale = 1.2;
+
+  applyLeaveCalendarZoom();
+}
+
+function resetLeaveCalendarZoom() {
+  leaveCalendarScale = 0.7;
+  applyLeaveCalendarZoom();
 }
     main();
   </script>
