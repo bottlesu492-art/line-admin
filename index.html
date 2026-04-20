@@ -364,29 +364,43 @@ function renderLeaveCalendar(monthData) {
 
   let html = `
     <div>
-      <div class="title" style="font-size:20px;">${month}月</div>
-      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:12px;">
+      <div class="title" style="font-size:20px; margin-bottom:10px;">${month}月</div>
+
+      <!-- 整體縮小 -->
+      <div style="font-size:12px; overflow-x:auto; -webkit-overflow-scrolling:touch;">
+        <div style="
+          display:grid;
+          grid-template-columns:repeat(7, 4.2em);
+          gap:6px;
+          width:max-content;
+        ">
   `;
 
   // 星期列
   weekdays.forEach(d => {
     html += `
       <div style="
+        width:4.2em;
+        height:2.6em;
+        display:flex;
+        align-items:center;
+        justify-content:center;
         text-align:center;
         font-weight:bold;
-        padding:8px 4px;
         background:var(--accent);
         border-radius:10px;
+        color:var(--text-main);
+        box-sizing:border-box;
       ">${d}</div>
     `;
   });
 
-  // 空格補齊
+  // 前面空白
   for (let i = 0; i < startWeekday; i++) {
-    html += `<div></div>`;
+    html += `<div style="width:4.2em;"></div>`;
   }
 
-  // 日期
+  // 日期格
   for (let day = 1; day <= lastDate; day++) {
     const mm = String(month).padStart(2, "0");
     const dd = String(day).padStart(2, "0");
@@ -395,21 +409,27 @@ function renderLeaveCalendar(monthData) {
 
     html += `
       <div style="
-        min-height:110px;
+        width:4.2em;
+        min-height:7.8em;
         background:var(--card);
         border:1px solid #e8e8e8;
         border-radius:12px;
-        padding:8px;
+        padding:0.5em;
         box-sizing:border-box;
         display:flex;
         flex-direction:column;
         align-items:flex-start;
       ">
-        <div style="font-weight:bold;margin-bottom:6px;">${day}</div>
+        <div style="
+          font-weight:bold;
+          font-size:1.1em;
+          margin-bottom:0.35em;
+          color:var(--text-main);
+        ">${day}</div>
 
         <div style="
-          font-size:13px;
-          line-height:1.5;
+          font-size:0.95em;
+          line-height:1.45;
           color:var(--text-main);
           white-space:normal;
           word-break:keep-all;
@@ -421,6 +441,7 @@ function renderLeaveCalendar(monthData) {
   }
 
   html += `
+        </div>
       </div>
     </div>
   `;
