@@ -362,11 +362,12 @@ function renderLeaveCalendar(monthData) {
   const startWeekday = firstDay.getDay();
   const weekdays = ["日", "一", "二", "三", "四", "五", "六"];
 
-  let html = `
-    <div style="margin-bottom:16px;">
-      <div class="title" style="font-size:20px;">${month}月</div>
-      <div style="overflow-x:auto; padding-bottom:6px;">
-        <div style="display:grid;grid-template-columns:repeat(7,96px);gap:6px;margin-top:12px;min-width:max-content;">
+ let html = `
+  <div style="margin-bottom:16px;">
+    <div class="title" style="font-size:20px;">${month}月</div>
+    <div style="overflow:hidden;">
+  <div style="transform:scale(${leaveCalendarScale}); transform-origin:top left;">
+    <div style="display:grid;grid-template-columns:repeat(7,96px);gap:6px;margin-top:12px;">
   `;
 
   weekdays.forEach(d => {
