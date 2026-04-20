@@ -247,7 +247,34 @@
   };
   document.body.appendChild(script);
 }
+function showExpensePage() {
+  window.handleExpense = function(data) {
+    let html = "";
 
+    for (let name in data) {
+      html += `<div class="card">`;
+      html += `<div class="title">${name}</div>`;
+
+      data[name].forEach(item => {
+        html += `
+          <div class="item">
+            <div>${item.time}｜${item.type}</div>
+            <div>${item.note || ""}</div>
+            <div><b>$${item.amount}</b></div>
+          </div>
+        `;
+      });
+
+      html += `</div>`;
+    }
+
+    showContent("支出明細", html);
+  };
+
+  const script = document.createElement("script");
+  script.src = GAS_URL + "?action=getExpenseList&callback=handleExpense";
+  document.body.appendChild(script);
+}
     main();
   </script>
 </body>
