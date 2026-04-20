@@ -320,15 +320,14 @@
   };
   document.body.appendChild(script);
 }
- function renderLeaveCalendar(monthData) {
+function renderLeaveCalendar(monthData) {
   const year = monthData.year;
   const month = monthData.month;
   const leaves = monthData.leaves || {};
 
   const firstDay = new Date(year, month - 1, 1);
   const lastDate = new Date(year, month, 0).getDate();
-  const startWeekday = firstDay.getDay(); // 0=日
-
+  const startWeekday = firstDay.getDay();
   const weekdays = ["日", "一", "二", "三", "四", "五", "六"];
 
   let html = `
@@ -361,24 +360,32 @@
 
     html += `
       <div style="
-        min-height:88px;
+        min-height:110px;
         background:var(--card);
         border:1px solid #e8e8e8;
         border-radius:12px;
         padding:8px;
         box-sizing:border-box;
+        display:flex;
+        flex-direction:column;
+        align-items:flex-start;
       ">
         <div style="font-weight:bold;margin-bottom:6px;">${day}</div>
-        <div style="font-size:13px;line-height:1.4;color:var(--text-main);white-space:pre-line;">${names.join("\n")}</div>
+        <div style="
+          font-size:13px;
+          line-height:1.5;
+          color:var(--text-main);
+          width:3.2em;
+          white-space:normal;
+          word-break:keep-all;
+        ">
+          ${names.join("<br>")}
+        </div>
       </div>
     `;
   }
 
-  html += `
-      </div>
-    </div>
-  `;
-
+  html += `</div></div>`;
   return html;
 }
 
