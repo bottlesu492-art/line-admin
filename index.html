@@ -1,17 +1,4 @@
-function loadUI() {
-  window.handleUI = function(data) {
-    // 對應你試算表的 key
-    document.documentElement.style.setProperty('--primary', data.primary || '#586D80');
-    document.documentElement.style.setProperty('--accent', data.accent || '#CCC5BC');
-    document.documentElement.style.setProperty('--text-main', data.title || '#2E3A45');
-    document.documentElement.style.setProperty('--text-sub', data.subText || '#666666');
-    document.documentElement.style.setProperty('--card', data.cardBg || '#ffffff');
-  };
 
-  const script = document.createElement("script");
-  script.src = GAS_URL + "?action=getUI&callback=handleUI";
-  document.body.appendChild(script);
-}
 
 
 <!DOCTYPE html>
@@ -136,6 +123,21 @@ function loadUI() {
     const LIFF_ID = "2009831016-9xQbInBY";
     const GAS_URL = "https://script.google.com/macros/s/AKfycbzPOpbhtiLEKyomI4vbt65Qih-DzPSUR1v_sZcVwM4QpFGIvqz7UxA-l-03XZAdv_2y/exec";
 
+    function loadUI() {
+  window.handleUI = function(data) {
+    // 對應你試算表的 key
+    document.documentElement.style.setProperty('--primary', data.primary || '#586D80');
+    document.documentElement.style.setProperty('--accent', data.accent || '#CCC5BC');
+    document.documentElement.style.setProperty('--text-main', data.title || '#2E3A45');
+    document.documentElement.style.setProperty('--text-sub', data.subText || '#666666');
+    document.documentElement.style.setProperty('--card', data.cardBg || '#ffffff');
+  };
+
+  const script = document.createElement("script");
+  script.src = GAS_URL + "?action=getUI&callback=handleUI";
+  document.body.appendChild(script);
+}
+    
     let currentProfile = null;
     let currentUserId = "";
 
