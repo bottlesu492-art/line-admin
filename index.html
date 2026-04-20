@@ -420,54 +420,6 @@ function rejectPatchCard(row) {
     + "&_t=" + Date.now();
   document.body.appendChild(script);
 }   
-function approvePatchCard(row) {
-  window.handleApprovePatch = function(data) {
-    if (data.ok) {
-      const card = document.getElementById("patch-card-" + row);
-      if (card) card.remove();
-    } else {
-      alert("❌ " + (data.message || "核准失敗"));
-    }
-  };
-
-  const script = document.createElement("script");
-  script.src = GAS_URL
-    + "?action=approvePatchWeb"
-    + "&row=" + encodeURIComponent(row)
-    + "&userId=" + encodeURIComponent(currentUserId)
-    + "&callback=handleApprovePatch";
-  document.body.appendChild(script);
-}
-
-function rejectPatchCard(row) {
-  const reason = prompt("請輸入駁回原因");
-  if (reason === null) return;
-
-  const finalReason = reason.trim();
-  if (!finalReason) {
-    alert("請輸入駁回原因");
-    return;
-  }
-
-  window.handleRejectPatch = function(data) {
-    if (data.ok) {
-      const card = document.getElementById("patch-card-" + row);
-      if (card) card.remove();
-    } else {
-      alert("❌ " + (data.message || "駁回失敗"));
-    }
-  };
-
-  const script = document.createElement("script");
-  script.src = GAS_URL
-    + "?action=rejectPatchWeb"
-    + "&row=" + encodeURIComponent(row)
-    + "&userId=" + encodeURIComponent(currentUserId)
-    + "&reason=" + encodeURIComponent(finalReason)
-    + "&callback=handleRejectPatch";
-  document.body.appendChild(script);
-}    
-
     function showEmployeePage() {
       showContent("員工薪資", "之後接員工清單與個人薪資資料");
     }
