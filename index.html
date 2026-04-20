@@ -96,6 +96,51 @@
 }
 .item:last-child {
   border-bottom: none;
+} 
+/* (備註功能) 補打卡橫向卡片區 */
+.patch-scroll {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  scroll-snap-type: x proximity;
+}
+
+.patch-card {
+  min-width: 260px;
+  max-width: 260px;
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+}
+
+.patch-card .title {
+  font-size: 18px;
+}
+
+.patch-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.patch-btn {
+  flex: 1;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.patch-btn.approve {
+  background: #4CAF50;
+  color: #fff;
+}
+
+.patch-btn.reject {
+  background: #D9534F;
+  color: #fff;
 }    
 </style>
 </head>
@@ -226,8 +271,100 @@
     }
 
     function showPatchPage() {
-      showContent("補打卡管理", "之後接待審核補打卡列表");
+  window.handlePatchPending = function(data) {
+    if (!data.ok) {
+      showContent("補打卡管理", "❌ 讀取失敗");
+      return;
     }
+
+    let html = `<div class="sub">待審核補打卡：${data.count} 筆</div>`;
+
+    if (!data.items || data.items.length === 0) {
+      html += `<div class="card">目前沒有待審核補打卡</div>`;
+      showContent("補打卡管理", html);
+      return;
+    }
+
+    html += `<div class="patch-scroll">`;
+
+    data.items.forEach(item => {
+      html += `
+        <div class="card patch-card" id="patch-card-${item.row}">
+          <div class="title">👤 ${item.name}</div>
+          <div class="item">📂 ${item.type}</div>
+          <div class="item">📅 ${item.dateText}</div>
+          <div class="item">📍 ${item.location || "未填"}</div>
+          <div class="item">📝 ${item.reason || "未填"}</div>
+
+          <div class="patch-actions">
+            <button class="patch-btn approve" onclick="approvePatchCard(${item.row})">核准</button>
+            <button class="patch-btn reject" onclick="rejectPatchCard(${item.row})">駁回</button>
+          </div>
+        </div>
+      `;
+    });
+
+    html += `</div>`;
+
+    showContent("補打卡管理", html);
+  };
+
+  const script = document.createElement("script");
+  script.src = GAS_URL
+    + "?action=getPatchPendingList"
+    + "&callback=handlePatchPending";
+  script.onerror = function() {
+    showContent("補打卡管理", "❌ 讀取失敗");
+  };
+  document.body.appendChild(script);
+}
+function approvePatchCard(row) {
+  window.handleApprovePatch = function(data) {
+    if (data.ok) {
+      const card = document.getElementById("patch-card-" + row);
+      if (card) card.remove();
+    } else {
+      alert("❌ " + (data.message || "核准失敗"));
+    }
+  };
+
+  const script = document.createElement("script");
+  script.src = GAS_URL
+    + "?action=approvePatchWeb"
+    + "&row=" + encodeURIComponent(row)
+    + "&userId=" + encodeURIComponent(currentUserId)
+    + "&callback=handleApprovePatch";
+  document.body.appendChild(script);
+}
+
+function rejectPatchCard(row) {
+  const reason = prompt("請輸入駁回原因");
+  if (reason === null) return;
+
+  const finalReason = reason.trim();
+  if (!finalReason) {
+    alert("請輸入駁回原因");
+    return;
+  }
+
+  window.handleRejectPatch = function(data) {
+    if (data.ok) {
+      const card = document.getElementById("patch-card-" + row);
+      if (card) card.remove();
+    } else {
+      alert("❌ " + (data.message || "駁回失敗"));
+    }
+  };
+
+  const script = document.createElement("script");
+  script.src = GAS_URL
+    + "?action=rejectPatchWeb"
+    + "&row=" + encodeURIComponent(row)
+    + "&userId=" + encodeURIComponent(currentUserId)
+    + "&reason=" + encodeURIComponent(finalReason)
+    + "&callback=handleRejectPatch";
+  document.body.appendChild(script);
+}    
 
     function showEmployeePage() {
       showContent("員工薪資", "之後接員工清單與個人薪資資料");
