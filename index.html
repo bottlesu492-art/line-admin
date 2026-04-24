@@ -206,6 +206,7 @@
         <button onclick="showTodayPage()">今日管理</button>
         <button onclick="showLeavePage()">排休管理</button>
         <button onclick="showPatchPage()">補打卡管理</button>
+        <button onclick="showOvertimePage()">加班管理</button>
         <button onclick="showEmployeePage()">員工薪資</button>
         <button onclick="showSummaryPage()">人事總額</button>
         <button onclick="showExpensePage()">支出明細</button>
@@ -821,7 +822,143 @@ function rejectPatchCard(row) {
     + "&callback=handleRejectPatch"
     + "&_t=" + Date.now();
   document.body.appendChild(script);
-}   
+}
+
+function showOvertimePage() {
+  showContent("加班管理", `
+    <div class="card empty-card">
+      <div class="title" style="font-size:20px;">讀取加班資料中...</div>
+      <div class="sub" style="margin-bottom:0;">請稍候</div>
+    </div>
+  `);
+
+  window.handleOvertimePending = function(data) {
+    renderOvertimePendingPage(data);
+  };
+
+  const script = document.createElement("script");
+  script.src = GAS_URL
+    + "?action=getOvertimePendingList"
+    + "&callback=handleOvertimePending"
+    + "&_t=" + Date.now();
+
+  script.onerror = function() {
+    showContent("加班管理", "❌ 讀取失敗");
+  };
+
+  document.body.appendChild(script);
+}
+
+function renderOvertimePendingPage(data) {
+  if (!data || !data.ok) {
+    showContent("加班管理", "❌ 讀取失敗");
+    return;
+  }
+
+  let html = `
+    <div class="patch-header">
+      <div class="sub">待審核加班申請</div>
+      <div class="patch-count">共 ${data.count || 0} 筆</div>
+    </div>
+  `;
+
+  if (!data.items || data.items.length === 0) {
+    html += `
+      <div class="card empty-card">
+        <div class="empty-icon">✅</div>
+        <div class="title" style="font-size:20px;">目前沒有待審核加班申請</div>
+        <div class="sub" style="margin-bottom:0;">上個月與本月的加班申請都已處理完成</div>
+      </div>
+    `;
+    showContent("加班管理", html);
+    return;
+  }
+
+  html += `<div class="patch-scroll">`;
+
+  data.items.forEach(item => {
+    html += `
+      <div class="card patch-card" id="overtime-card-${item.row}">
+        <div class="title">👤 ${item.name}</div>
+        <div class="item">📂 ${item.type}</div>
+        <div class="item">📅 ${item.dateText}</div>
+        <div class="item">⏱️ ${item.hoursText || "未填"}</div>
+        <div class="item">📝 ${item.reason || "未填"}</div>
+
+        <div class="patch-actions">
+          <button class="patch-btn approve" onclick="approveOvertimeCard(${item.row})">核准</button>
+          <button class="patch-btn reject" onclick="rejectOvertimeCard(${item.row})">駁回</button>
+        </div>
+      </div>
+    `;
+  });
+
+  html += `</div>`;
+
+  showContent("加班管理", html);
+}
+
+function refreshOvertimePage() {
+  window.handleOvertimePendingRefresh = function(data) {
+    renderOvertimePendingPage(data);
+  };
+
+  const script = document.createElement("script");
+  script.src = GAS_URL
+    + "?action=getOvertimePendingList"
+    + "&callback=handleOvertimePendingRefresh"
+    + "&_t=" + Date.now();
+  document.body.appendChild(script);
+}
+
+function approveOvertimeCard(row) {
+  window.handleApproveOvertime = function(data) {
+    if (data.ok) {
+      refreshOvertimePage();
+    } else {
+      alert("❌ " + (data.message || "核准失敗"));
+    }
+  };
+
+  const script = document.createElement("script");
+  script.src = GAS_URL
+    + "?action=approveOvertimeWeb"
+    + "&row=" + encodeURIComponent(row)
+    + "&userId=" + encodeURIComponent(currentUserId)
+    + "&callback=handleApproveOvertime"
+    + "&_t=" + Date.now();
+  document.body.appendChild(script);
+}
+
+function rejectOvertimeCard(row) {
+  const reason = prompt("請輸入駁回原因");
+  if (reason === null) return;
+
+  const finalReason = reason.trim();
+  if (!finalReason) {
+    alert("請輸入駁回原因");
+    return;
+  }
+
+  window.handleRejectOvertime = function(data) {
+    if (data.ok) {
+      refreshOvertimePage();
+    } else {
+      alert("❌ " + (data.message || "駁回失敗"));
+    }
+  };
+
+  const script = document.createElement("script");
+  script.src = GAS_URL
+    + "?action=rejectOvertimeWeb"
+    + "&row=" + encodeURIComponent(row)
+    + "&userId=" + encodeURIComponent(currentUserId)
+    + "&reason=" + encodeURIComponent(finalReason)
+    + "&callback=handleRejectOvertime"
+    + "&_t=" + Date.now();
+  document.body.appendChild(script);
+}
+
 function showEmployeePage() {
   showContent("員工薪資", `
     <div class="card empty-card">
