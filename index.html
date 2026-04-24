@@ -828,6 +828,8 @@ function showPatchPage() {
   document.body.appendChild(script);
 }
 function renderPatchPendingPage(data) {
+  hideProcessingOverlay();
+
   if (!data || !data.ok) {
     showContent("補打卡管理", "❌ 讀取失敗");
     return;
@@ -885,6 +887,12 @@ function renderPatchPendingPage(data) {
     + "?action=getPatchPendingList"
     + "&callback=handlePatchPendingRefresh"
     + "&_t=" + Date.now();
+
+  script.onerror = function() {
+    hideProcessingOverlay();
+    alert("❌ 更新補打卡列表失敗，請稍後再試");
+  };
+
   document.body.appendChild(script);
 }
 
@@ -892,11 +900,11 @@ function approvePatchCard(row) {
   showProcessingOverlay("補打卡核准中...");
 
   window.handleApprovePatch = function(data) {
-    hideProcessingOverlay();
-
     if (data.ok) {
+      showProcessingOverlay("補打卡更新列表中...");
       refreshPatchPage();
     } else {
+      hideProcessingOverlay();
       alert("❌ " + (data.message || "核准失敗"));
     }
   };
@@ -930,11 +938,11 @@ function rejectPatchCard(row) {
   showProcessingOverlay("補打卡駁回中...");
 
   window.handleRejectPatch = function(data) {
-    hideProcessingOverlay();
-
     if (data.ok) {
+      showProcessingOverlay("補打卡更新列表中...");
       refreshPatchPage();
     } else {
+      hideProcessingOverlay();
       alert("❌ " + (data.message || "駁回失敗"));
     }
   };
@@ -982,6 +990,8 @@ function showOvertimePage() {
 }
 
 function renderOvertimePendingPage(data) {
+  hideProcessingOverlay();
+
   if (!data || !data.ok) {
     showContent("加班管理", "❌ 讀取失敗");
     return;
@@ -1040,6 +1050,12 @@ function refreshOvertimePage() {
     + "?action=getOvertimePendingList"
     + "&callback=handleOvertimePendingRefresh"
     + "&_t=" + Date.now();
+
+  script.onerror = function() {
+    hideProcessingOverlay();
+    alert("❌ 更新加班列表失敗，請稍後再試");
+  };
+
   document.body.appendChild(script);
 }
 
@@ -1047,11 +1063,11 @@ function approveOvertimeCard(row) {
   showProcessingOverlay("加班申請核准中...");
 
   window.handleApproveOvertime = function(data) {
-    hideProcessingOverlay();
-
     if (data.ok) {
+      showProcessingOverlay("加班列表更新中...");
       refreshOvertimePage();
     } else {
+      hideProcessingOverlay();
       alert("❌ " + (data.message || "核准失敗"));
     }
   };
@@ -1085,11 +1101,11 @@ function rejectOvertimeCard(row) {
   showProcessingOverlay("加班申請駁回中...");
 
   window.handleRejectOvertime = function(data) {
-    hideProcessingOverlay();
-
     if (data.ok) {
+      showProcessingOverlay("加班列表更新中...");
       refreshOvertimePage();
     } else {
+      hideProcessingOverlay();
       alert("❌ " + (data.message || "駁回失敗"));
     }
   };
