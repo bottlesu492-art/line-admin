@@ -1026,6 +1026,7 @@ function renderOvertimePendingPage(data) {
         <div class="item">📅 ${item.dateText}</div>
         <div class="item">⏱️ ${item.hoursText || "未填"}</div>
         <div class="item">📝 ${item.reason || "未填"}</div>
+        ${item.reviewHint ? `<div class="item" style="color:#8a6d3b;">⚠️ ${item.reviewHint}</div>` : ""}
 
         <div class="patch-actions">
           <button class="patch-btn approve" onclick="approveOvertimeCard(${item.row})">核准</button>
