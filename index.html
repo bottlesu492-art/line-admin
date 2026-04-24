@@ -345,6 +345,7 @@ function renderDashboardPage(data) {
   html += renderTodayAbnormalCard(data.abnormal);
 html += renderTodayClockUsersCard(data.todayClockUsers);
 html += renderPatchDashboardCard(data.patchPending);
+html += renderOvertimeDashboardCard(data.overtimePending);
 html += renderTodayLeaveRequestCard(data.todayLeaveRequests);
 
   showContent("今日管理", html);
@@ -430,6 +431,22 @@ function renderPatchDashboardCard(patchPending) {
       </div>
       <button style="margin-top:12px;width:100%;" onclick="event.stopPropagation(); showPatchPage();">
         前往補打卡管理
+      </button>
+    </div>
+  `;
+}
+
+function renderOvertimeDashboardCard(overtimePending) {
+  const count = overtimePending && overtimePending.count ? overtimePending.count : 0;
+
+  return `
+    <div class="card" onclick="showOvertimePage()" style="cursor:pointer;">
+      <div class="title">加班待審核</div>
+      <div class="highlight" style="margin-top:0;">
+        加班待審核：${count} 筆
+      </div>
+      <button style="margin-top:12px;width:100%;" onclick="event.stopPropagation(); showOvertimePage();">
+        前往加班管理
       </button>
     </div>
   `;
