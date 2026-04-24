@@ -166,6 +166,19 @@
   min-height: 72px;
   resize: vertical;
 }
+
+.review-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text-main);
+}
+
+.review-check input {
+  width: 16px;
+  height: 16px;
+}
 .patch-header {
   display: flex;
   justify-content: space-between;
@@ -1217,6 +1230,10 @@ function renderUnknownPendingPage(data) {
         <div class="review-form">
           <input class="review-input" id="unknown-name-${item.row}" type="text" value="${escapeHtml(item.nameText || "")}" placeholder="姓名">
           <input class="review-input" id="unknown-pay-${item.row}" type="number" inputmode="numeric" placeholder="日薪">
+          <label class="review-check">
+            <input id="unknown-create-sheet-${item.row}" type="checkbox" checked>
+            <span>同時建立薪資分頁</span>
+          </label>
           <textarea class="review-textarea" id="unknown-note-${item.row}" placeholder="備註（通過可不填，退回請填原因）">${escapeHtml(item.note || "")}</textarea>
         </div>
 
@@ -1254,6 +1271,7 @@ function refreshUnknownPage() {
 function approveUnknownCard(row) {
   const name = document.getElementById(`unknown-name-${row}`).value.trim();
   const dailyPay = document.getElementById(`unknown-pay-${row}`).value.trim();
+  const createSalarySheet = document.getElementById(`unknown-create-sheet-${row}`).checked;
   const note = document.getElementById(`unknown-note-${row}`).value.trim();
 
   if (!name) {
@@ -1285,6 +1303,7 @@ function approveUnknownCard(row) {
     + "&userId=" + encodeURIComponent(currentUserId)
     + "&name=" + encodeURIComponent(name)
     + "&dailyPay=" + encodeURIComponent(dailyPay)
+    + "&createSalarySheet=" + encodeURIComponent(createSalarySheet ? "yes" : "no")
     + "&note=" + encodeURIComponent(note)
     + "&callback=handleApproveUnknown"
     + "&_t=" + Date.now();
