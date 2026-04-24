@@ -142,6 +142,30 @@
   background: #D9534F;
   color: #fff;
 }
+
+.review-form {
+  margin-top: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.review-input,
+.review-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #d7dee6;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--text-main);
+  background: #fff;
+}
+
+.review-textarea {
+  min-height: 72px;
+  resize: vertical;
+}
 .patch-header {
   display: flex;
   justify-content: space-between;
@@ -265,6 +289,7 @@ button:disabled {
         <button onclick="showLeavePage()">排休管理</button>
         <button onclick="showPatchPage()">補打卡管理</button>
         <button onclick="showOvertimePage()">加班管理</button>
+        <button onclick="showUnknownPage()">待開通管理</button>
         <button onclick="showEmployeePage()">員工薪資</button>
         <button onclick="showSummaryPage()">人事總額</button>
         <button onclick="showExpensePage()">支出明細</button>
@@ -1126,6 +1151,195 @@ function rejectOvertimeCard(row) {
   };
 
   document.body.appendChild(script);
+}
+
+function showUnknownPage() {
+  showContent("待開通管理", `
+    <div class="card empty-card">
+      <div class="title" style="font-size:20px;">讀取待開通資料中...</div>
+      <div class="sub" style="margin-bottom:0;">請稍候</div>
+    </div>
+  `);
+
+  window.handleUnknownPending = function(data) {
+    renderUnknownPendingPage(data);
+  };
+
+  const script = document.createElement("script");
+  script.src = GAS_URL
+    + "?action=getUnknownPendingList"
+    + "&callback=handleUnknownPending"
+    + "&_t=" + Date.now();
+
+  script.onerror = function() {
+    showContent("待開通管理", "❌ 讀取失敗");
+  };
+
+  document.body.appendChild(script);
+}
+
+function renderUnknownPendingPage(data) {
+  hideProcessingOverlay();
+
+  if (!data || !data.ok) {
+    showContent("待開通管理", "❌ 讀取失敗");
+    return;
+  }
+
+  let html = `
+    <div class="patch-header">
+      <div class="sub">待開通員工</div>
+      <div class="patch-count">共 ${data.count || 0} 筆</div>
+    </div>
+  `;
+
+  if (!data.items || data.items.length === 0) {
+    html += `
+      <div class="card empty-card">
+        <div class="empty-icon">✅</div>
+        <div class="title" style="font-size:20px;">目前沒有待開通資料</div>
+        <div class="sub" style="margin-bottom:0;">陌生訊息中的待處理資料已完成</div>
+      </div>
+    `;
+    showContent("待開通管理", html);
+    return;
+  }
+
+  html += `<div class="patch-scroll">`;
+
+  data.items.forEach(item => {
+    html += `
+      <div class="card patch-card" id="unknown-card-${item.row}">
+        <div class="title">👤 ${item.nameText || "未填姓名"}</div>
+        <div class="item">📅 ${item.timeText || "未填"}</div>
+        <div class="item">🆔 ${item.userId}</div>
+
+        <div class="review-form">
+          <input class="review-input" id="unknown-name-${item.row}" type="text" value="${escapeHtml(item.nameText || "")}" placeholder="姓名">
+          <input class="review-input" id="unknown-pay-${item.row}" type="number" inputmode="numeric" placeholder="日薪">
+          <textarea class="review-textarea" id="unknown-note-${item.row}" placeholder="備註（通過可不填，退回請填原因）">${escapeHtml(item.note || "")}</textarea>
+        </div>
+
+        <div class="patch-actions">
+          <button class="patch-btn approve" onclick="approveUnknownCard(${item.row})">通過</button>
+          <button class="patch-btn reject" onclick="rejectUnknownCard(${item.row})">退回</button>
+        </div>
+      </div>
+    `;
+  });
+
+  html += `</div>`;
+  showContent("待開通管理", html);
+}
+
+function refreshUnknownPage() {
+  window.handleUnknownPendingRefresh = function(data) {
+    renderUnknownPendingPage(data);
+  };
+
+  const script = document.createElement("script");
+  script.src = GAS_URL
+    + "?action=getUnknownPendingList"
+    + "&callback=handleUnknownPendingRefresh"
+    + "&_t=" + Date.now();
+
+  script.onerror = function() {
+    hideProcessingOverlay();
+    alert("❌ 更新待開通列表失敗，請稍後再試");
+  };
+
+  document.body.appendChild(script);
+}
+
+function approveUnknownCard(row) {
+  const name = document.getElementById(`unknown-name-${row}`).value.trim();
+  const dailyPay = document.getElementById(`unknown-pay-${row}`).value.trim();
+  const note = document.getElementById(`unknown-note-${row}`).value.trim();
+
+  if (!name) {
+    alert("請輸入姓名");
+    return;
+  }
+
+  if (!dailyPay) {
+    alert("請輸入日薪");
+    return;
+  }
+
+  showProcessingOverlay("開通審核中...");
+
+  window.handleApproveUnknown = function(data) {
+    if (data.ok) {
+      showProcessingOverlay("待開通列表更新中...");
+      refreshUnknownPage();
+    } else {
+      hideProcessingOverlay();
+      alert("❌ " + (data.message || "通過失敗"));
+    }
+  };
+
+  const script = document.createElement("script");
+  script.src = GAS_URL
+    + "?action=approveUnknownUserWeb"
+    + "&row=" + encodeURIComponent(row)
+    + "&userId=" + encodeURIComponent(currentUserId)
+    + "&name=" + encodeURIComponent(name)
+    + "&dailyPay=" + encodeURIComponent(dailyPay)
+    + "&note=" + encodeURIComponent(note)
+    + "&callback=handleApproveUnknown"
+    + "&_t=" + Date.now();
+
+  script.onerror = function() {
+    hideProcessingOverlay();
+    alert("❌ 通過失敗，請稍後再試");
+  };
+
+  document.body.appendChild(script);
+}
+
+function rejectUnknownCard(row) {
+  const note = document.getElementById(`unknown-note-${row}`).value.trim();
+
+  if (!note) {
+    alert("請輸入備註");
+    return;
+  }
+
+  showProcessingOverlay("退回申請中...");
+
+  window.handleRejectUnknown = function(data) {
+    if (data.ok) {
+      showProcessingOverlay("待開通列表更新中...");
+      refreshUnknownPage();
+    } else {
+      hideProcessingOverlay();
+      alert("❌ " + (data.message || "退回失敗"));
+    }
+  };
+
+  const script = document.createElement("script");
+  script.src = GAS_URL
+    + "?action=rejectUnknownUserWeb"
+    + "&row=" + encodeURIComponent(row)
+    + "&userId=" + encodeURIComponent(currentUserId)
+    + "&note=" + encodeURIComponent(note)
+    + "&callback=handleRejectUnknown"
+    + "&_t=" + Date.now();
+
+  script.onerror = function() {
+    hideProcessingOverlay();
+    alert("❌ 退回失敗，請稍後再試");
+  };
+
+  document.body.appendChild(script);
+}
+
+function escapeHtml(text) {
+  return String(text || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;");
 }
 
 function showEmployeePage() {
